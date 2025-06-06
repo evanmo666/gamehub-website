@@ -3,20 +3,6 @@
   "version": "1.0.0",
   "description": "Online gaming platform with various games across different categories",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "next": "^15.3.3",
-    "next-auth": "^4.24.11",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-hot-toast": "^2.5.2"
-  },
-  "devDependencies": {
-    "@types/node": "22.15.30",
-    "@types/react": "19.1.6",
-    "typescript": "5.8.3"
+    "build": "echo 'No build step required'"
   }
 }

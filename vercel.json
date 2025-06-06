@@ -1,11 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "functions": null,
   "routes": [
     {
       "src": "/(.*)",
