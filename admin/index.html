@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub Admin Panel</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <h1>GameHub Admin</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showAddGameModal()">
+                    <i class="fas fa-plus"></i> Add Game
+                </button>
+                <button class="btn btn-secondary" onclick="showBatchUploadModal()">
+                    <i class="fas fa-upload"></i> Batch Upload
+                </button>
+                <button class="btn btn-outline" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-success" onclick="previewSite()" target="_blank">
+                    <i class="fas fa-eye"></i> Preview Site
+                </button>
+                <button class="btn btn-danger" onclick="logoutAdmin()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar">
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active" data-section="games">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Games Management</span>
+                </li>
+                <li class="nav-item" data-section="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </li>
+                <li class="nav-item" data-section="seo">
+                    <i class="fas fa-search"></i>
+                    <span>SEO Settings</span>
+                </li>
+                <li class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+        <!-- Games Management Section -->
+        <section id="games-section" class="content-section active">
+            <div class="section-header">
+                <h2>Games Management</h2>
+                <div class="section-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-games">0</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-categories">0</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="featured-games">0</div>
+                        <div class="stat-label">Featured</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="admin-filters">
+                <div class="filter-group">
+                    <input type="text" id="search-games" placeholder="Search games..." class="search-input">
+                    <select id="filter-category" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Games Table -->
+            <div class="games-table-container">
+                <table class="games-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all-games">
+                            </th>
+                            <th>Game</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>SEO Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="games-table-body">
+                        <!-- Games will be dynamically loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                <div class="bulk-info">
+                    <span id="selected-count">0</span> games selected
+                </div>
+                <div class="bulk-buttons">
+                    <button class="btn btn-outline btn-sm" onclick="bulkAction('feature')">
+                        <i class="fas fa-star"></i> Feature
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="bulkAction('unfeature')">
+                        <i class="far fa-star"></i> Unfeature
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="bulkAction('delete')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Showing <span id="showing-start">1</span>-<span id="showing-end">10</span> of <span id="total-items">0</span> games
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn-outline btn-sm" onclick="changePage('prev')" id="prev-page">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <div class="page-numbers" id="page-numbers">
+                        <!-- Page numbers will be generated here -->
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="changePage('next')" id="next-page">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories-section" class="content-section">
+            <div class="section-header">
+                <h2>Categories Management</h2>
+                <button class="btn btn-primary" onclick="showAddCategoryModal()">
+                    <i class="fas fa-plus"></i> Add Category
+                </button>
+            </div>
+            <div class="categories-grid" id="categories-grid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </section>
+
+        <!-- SEO Section -->
+        <section id="seo-section" class="content-section">
+            <div class="section-header">
+                <h2>SEO Settings</h2>
+                <div class="seo-actions">
+                    <button class="btn btn-primary" onclick="generateSEO()">
+                        <i class="fas fa-magic"></i> Auto Generate SEO
+                    </button>
+                    <button class="btn btn-success" onclick="analyzeSEO()">
+                        <i class="fas fa-search"></i> Analyze All
+                    </button>
+                </div>
+            </div>
+            <div class="seo-dashboard">
+                <div class="seo-stats">
+                    <div class="seo-stat-card">
+                        <div class="seo-score excellent" id="overall-seo-score">A+</div>
+                        <div class="seo-label">Overall Score</div>
+                    </div>
+                    <div class="seo-stat-card">
+                        <div class="seo-number" id="games-with-seo">95%</div>
+                        <div class="seo-label">Games with SEO</div>
+                    </div>
+                    <div class="seo-stat-card">
+                        <div class="seo-number" id="missing-descriptions">12</div>
+                        <div class="seo-label">Missing Descriptions</div>
+                    </div>
+                </div>
+                <div class="seo-issues-list" id="seo-issues-list">
+                    <!-- SEO issues will be listed here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" class="content-section">
+            <div class="section-header">
+                <h2>Settings</h2>
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3>General Settings</h3>
+                    <div class="setting-item">
+                        <label>Site Title</label>
+                        <input type="text" id="site-title" value="GameHub - Online Gaming Platform" class="form-input">
+                    </div>
+                    <div class="setting-item">
+                        <label>Games per Page</label>
+                        <input type="number" id="games-per-page" value="12" class="form-input">
+                    </div>
+                    <div class="setting-item">
+                        <label>Featured Games Count</label>
+                        <input type="number" id="featured-count" value="20" class="form-input">
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Upload Settings</h3>
+                    <div class="setting-item">
+                        <label>Max File Size (MB)</label>
+                        <input type="number" id="max-file-size" value="10" class="form-input">
+                    </div>
+                    <div class="setting-item">
+                        <label>Allowed Image Types</label>
+                        <input type="text" id="allowed-types" value="jpg,jpeg,png,webp,gif" class="form-input">
+                    </div>
+                    <div class="setting-item">
+                        <label>Auto Generate Thumbnails</label>
+                        <select id="auto-thumbnails" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add/Edit Game Modal -->
+    <div class="modal" id="game-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="game-modal-title">Add New Game</h3>
+                <button class="modal-close" onclick="closeModal('game-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="game-form" class="game-form">
+                    <input type="hidden" id="game-id" name="id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="game-title">Game Title *</label>
+                            <input type="text" id="game-title" name="title" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-category">Category *</label>
+                            <select id="game-category" name="category" required class="form-select">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="game-url">Game URL</label>
+                            <input type="url" id="game-url" name="url" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-embed-url">Embed URL *</label>
+                            <input type="url" id="game-embed-url" name="embed_url" required class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="game-description">Description</label>
+                        <textarea id="game-description" name="description" rows="3" class="form-textarea" placeholder="Game description for SEO..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="game-tags">Tags</label>
+                            <input type="text" id="game-tags" name="tags" class="form-input" placeholder="action, adventure, multiplayer">
+                        </div>
+                        <div class="form-group">
+                            <label for="game-featured">Featured Game</label>
+                            <select id="game-featured" name="featured" class="form-select">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Thumbnail Upload -->
+                    <div class="form-group">
+                        <label>Game Thumbnail</label>
+                        <div class="thumbnail-upload">
+                            <div class="thumbnail-preview" id="thumbnail-preview">
+                                <i class="fas fa-image"></i>
+                                <span>Click to upload thumbnail</span>
+                            </div>
+                            <input type="file" id="game-thumbnail" accept="image/*" style="display: none;">
+                            <div class="thumbnail-actions">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('game-thumbnail').click()">
+                                    <i class="fas fa-upload"></i> Upload Image
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="generateThumbnail()">
+                                    <i class="fas fa-magic"></i> Auto Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEO Settings -->
+                    <div class="seo-settings">
+                        <h4><i class="fas fa-search"></i> SEO Settings</h4>
+                        <div class="form-group">
+                            <label for="seo-title">SEO Title</label>
+                            <input type="text" id="seo-title" name="seo_title" class="form-input" placeholder="Play [Game Title] - Free Online Game">
+                            <div class="char-count">
+                                <span id="seo-title-count">0</span>/60 characters
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="seo-description">Meta Description</label>
+                            <textarea id="seo-description" name="seo_description" class="form-textarea" rows="3" placeholder="Engaging description for search engines..."></textarea>
+                            <div class="char-count">
+                                <span id="seo-description-count">0</span>/160 characters
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="seo-keywords">Keywords</label>
+                            <input type="text" id="seo-keywords" name="seo_keywords" class="form-input" placeholder="game, online, free, play">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('game-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Game
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Upload Modal -->
+    <div class="modal" id="batch-upload-modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Batch Upload Games</h3>
+                <button class="modal-close" onclick="closeModal('batch-upload-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-methods">
+                    <div class="upload-method active" data-method="csv">
+                        <i class="fas fa-file-csv"></i>
+                        <span>CSV Upload</span>
+                    </div>
+                    <div class="upload-method" data-method="json">
+                        <i class="fas fa-file-code"></i>
+                        <span>JSON Import</span>
+                    </div>
+                </div>
+
+                <div class="upload-content">
+                    <!-- CSV Upload -->
+                    <div class="upload-section active" id="csv-upload">
+                        <div class="file-dropzone" id="csv-dropzone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h4>Drop CSV file here or click to browse</h4>
+                            <p>Upload a CSV file with game data. <a href="#" onclick="downloadTemplate()">Download template</a></p>
+                            <input type="file" id="csv-file" accept=".csv" style="display: none;">
+                        </div>
+                        <div class="upload-preview" id="csv-preview" style="display: none;">
+                            <h4>Preview Data (<span id="preview-count">0</span> games)</h4>
+                            <div class="preview-table-container">
+                                <table class="preview-table" id="csv-preview-table">
+                                    <!-- Preview will be shown here -->
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JSON Import -->
+                    <div class="upload-section" id="json-upload">
+                        <textarea id="json-input" class="json-textarea" placeholder='Paste JSON data here...
+Example:
+[
+  {
+    "title": "Game Name",
+    "category": "Action",
+    "url": "https://example.com/game",
+    "embed_url": "https://example.com/embed/game",
+    "description": "Game description",
+    "tags": "action, adventure"
+  }
+]'></textarea>
+                        <div class="json-actions">
+                            <button class="btn btn-outline" onclick="validateJSON()">
+                                <i class="fas fa-check"></i> Validate
+                            </button>
+                            <button class="btn btn-outline" onclick="formatJSON()">
+                                <i class="fas fa-magic"></i> Format
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-actions">
+                    <div class="upload-progress" id="upload-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="progress-text">Processing...</div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('batch-upload-modal')">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="processBatchUpload()">
+                            <i class="fas fa-upload"></i> Upload Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div class="loading-text">Processing...</div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container">
+        <!-- Toast messages will appear here -->
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3 id="category-modal-title">Add New Category</h3>
+                <button class="modal-close" onclick="closeModal('category-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="category-form" class="category-form">
+                    <input type="hidden" id="category-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="category-name">Category Name *</label>
+                        <input type="text" id="category-name" name="name" required class="form-input">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('category-modal')">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="saveCategory()">
+                            <i class="fas fa-save"></i> Save Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html> 
