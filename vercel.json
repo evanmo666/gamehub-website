@@ -3,7 +3,7 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
-  "functions": null,
+  "functions": {},
   "routes": [
     {
       "src": "/(.*)",
