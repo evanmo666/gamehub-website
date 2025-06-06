@@ -104,7 +104,7 @@ class GameWebsite {
                 }, 300);
             });
         }
-        
+
         // 分类筛选器
         const categoryFilter = document.getElementById('categoryFilter');
         if (categoryFilter) {
@@ -148,14 +148,6 @@ class GameWebsite {
 
         // Game modal events
         this.setupGameModal();
-
-        // 分类筛选器
-        const categoryFilter = document.getElementById('categoryFilter');
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', (e) => {
-                this.selectCategory(e.target.value);
-            });
-        }
     }
 
     setupMobileMenu() {
@@ -295,7 +287,7 @@ class GameWebsite {
             const matchingButton = document.querySelector(`.category-item[data-category="${category}"]`);
             if (matchingButton) {
                 matchingButton.classList.add('active');
-            }
+    }
         }
         
         // 同步顶部分类筛选器
@@ -766,7 +758,7 @@ class GameWebsite {
             frameEl.src = '';
             modal.classList.remove('active', 'fullscreen');
             document.body.style.overflow = 'auto';
-        }
+            }
     }
 
     // 初始化分类筛选器
@@ -791,28 +783,7 @@ class GameWebsite {
 
 // Initialize website
 let gameWebsite;
-// 初始化分类筛选器
-initCategoryFilter() {
-    const categoryFilter = document.getElementById('categoryFilter');
-    if (!categoryFilter) return;
-    
-    // 获取所有分类并排序
-    const categories = ['all', ...this.allCategories].sort((a, b) => {
-        if (a === 'all') return -1;
-        if (b === 'all') return 1;
-        return a.localeCompare(b);
-    });
-    
-    // 更新分类筛选器选项
-    categoryFilter.innerHTML = categories.map(category => {
-        const displayName = category === 'all' ? 'All Categories' : category;
-        return `<option value="${category}">${displayName}</option>`;
-    }).join('');
-}
 
 document.addEventListener('DOMContentLoaded', () => {
-    gameWebsite = new GameWebsite();
+    window.gameWebsite = new GameWebsite();
 });
-
-// Global functions (for HTML calls)
-window.gameWebsite = gameWebsite;
