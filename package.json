@@ -1,4 +1,12 @@
 {
+  "name": "gamehub-website",
+  "version": "1.0.0",
+  "description": "Online gaming platform with various games across different categories",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
     "next": "^15.3.3",
     "next-auth": "^4.24.11",
