@@ -3,91 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - 管理员登录</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>GameHub 管理后台 - 登录</title>
+    
+    <!-- 导入字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #3730a3;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #d1d5db;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
+            background: var(--bg-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
-        .login-card {
+        
+        .login-container {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
             width: 100%;
             max-width: 400px;
         }
-        .logo {
+        
+        .login-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 40px 30px 30px;
             text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .login-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .login-form {
+            padding: 40px 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 30px;
         }
-        .logo h1 {
-            color: #667eea;
-            font-weight: bold;
-            margin: 0;
+        
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+        
+        .checkbox-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .login-button {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .login-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+        
+        .login-button:active {
+            transform: translateY(0);
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .alert.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .home-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .home-link a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+        
+        .home-link a:hover {
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .login-header {
+                padding: 30px 20px 20px;
+            }
+            
+            .login-form {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <div class="logo">
-            <h1>🎮 GameHub</h1>
-            <p class="text-muted">管理员登录</p>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">🎮</div>
+            <h1 class="login-title">GameHub 管理后台</h1>
+            <p class="login-subtitle">请登录以继续访问</p>
         </div>
         
-        <form id="loginForm">
-            <div class="mb-3">
+        <form class="login-form" id="loginForm">
+            <div id="alertContainer"></div>
+            
+            <div class="form-group">
                 <label for="username" class="form-label">用户名</label>
-                <input type="text" class="form-control" id="username" value="admin" required>
+                <input type="text" id="username" class="form-input" placeholder="请输入用户名" required>
             </div>
-            <div class="mb-3">
+            
+            <div class="form-group">
                 <label for="password" class="form-label">密码</label>
-                <input type="password" class="form-control" id="password" value="admin123" required>
+                <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
             </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="rememberMe">
-                <label class="form-check-label" for="rememberMe">记住我</label>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="rememberMe" class="checkbox">
+                <label for="rememberMe" class="checkbox-label">记住我</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100">登录</button>
+            
+            <button type="submit" class="login-button" id="loginButton">
+                <span class="loading" id="loadingSpinner"></span>
+                <span id="buttonText">登录</span>
+            </button>
+            
+            <div class="home-link">
+                <a href="../index.html">← 返回网站首页</a>
+            </div>
         </form>
-        
-        <div class="text-center mt-3">
-            <small class="text-muted">默认账号: admin / admin123</small>
-        </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // 登录凭据
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'gamehub2024'
+        };
+        
+        // DOM 元素
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const rememberMeCheckbox = document.getElementById('rememberMe');
+        const loginButton = document.getElementById('loginButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const buttonText = document.getElementById('buttonText');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // 检查是否已登录
+        function checkExistingLogin() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') || sessionStorage.getItem('adminLoggedIn');
+            if (isLoggedIn === 'true') {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // 显示提示消息
+        function showAlert(message, type = 'error') {
+            alertContainer.innerHTML = `
+                <div class="alert ${type}">
+                    ${message}
+                </div>
+            `;
+            const alert = alertContainer.querySelector('.alert');
+            alert.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                if (alert) {
+                    alert.style.display = 'none';
+                }
+            }, 3000);
+        }
+        
+        // 设置加载状态
+        function setLoading(loading) {
+            if (loading) {
+                loadingSpinner.style.display = 'inline-block';
+                buttonText.textContent = '登录中...';
+                loginButton.disabled = true;
+            } else {
+                loadingSpinner.style.display = 'none';
+                buttonText.textContent = '登录';
+                loginButton.disabled = false;
+            }
+        }
+        
+        // 登录验证
+        function validateLogin(username, password) {
+            return username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password;
+        }
+        
+        // 处理登录
+        function handleLogin(username, password, rememberMe) {
+            setLoading(true);
+            
+            // 模拟网络延迟
+            setTimeout(() => {
+                if (validateLogin(username, password)) {
+                    // 登录成功
+                    const storage = rememberMe ? localStorage : sessionStorage;
+                    storage.setItem('adminLoggedIn', 'true');
+                    storage.setItem('adminUsername', username);
+                    storage.setItem('loginTime', new Date().toISOString());
+                    
+                    showAlert('登录成功！正在跳转...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    // 登录失败
+                    showAlert('用户名或密码错误，请重试');
+                    setLoading(false);
+                    
+                    // 清空密码输入框
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            }, 1000);
+        }
+        
+        // 表单提交事件
+        loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            const rememberMe = rememberMeCheckbox.checked;
             
-            if (username === 'admin' && password === 'admin123') {
-                // 保存登录状态
-                if (rememberMe) {
-                    localStorage.setItem('adminLoggedIn', 'true');
-                } else {
-                    sessionStorage.setItem('adminLoggedIn', 'true');
-                }
-                
-                // 跳转到管理页面
-                window.location.href = 'index.html';
-            } else {
-                alert('用户名或密码错误！');
+            if (!username || !password) {
+                showAlert('请输入用户名和密码');
+                return;
+            }
+            
+            handleLogin(username, password, rememberMe);
+        });
+        
+        // 回车键登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
             }
         });
         
-        // 检查是否已经登录
-        if (localStorage.getItem('adminLoggedIn') || sessionStorage.getItem('adminLoggedIn')) {
-            window.location.href = 'index.html';
-        }
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkExistingLogin();
+            usernameInput.focus();
+            
+            // 显示登录提示
+            setTimeout(() => {
+                showAlert('提示：用户名: admin，密码: gamehub2024', 'success');
+            }, 500);
+        });
     </script>
 </body>
 </html> 
