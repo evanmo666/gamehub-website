@@ -570,7 +570,7 @@ class GameWebsite {
                     <div class="no-games-icon">🎮</div>
                     <h3>No games found</h3>
                     <p>Try searching with different keywords or select a different category</p>
-                    <button onclick="gameWebsite.selectCategory('all')" class="back-to-all-btn">View All Games</button>
+                    <button onclick="window.gameWebsite.selectCategory('all')" class="back-to-all-btn">View All Games</button>
                 </div>
             `;
         }
@@ -604,14 +604,14 @@ class GameWebsite {
         paginationContainer.innerHTML = `
             <div class="pagination">
                 <button class="page-btn prev" ${this.currentPage === 1 ? 'disabled' : ''} 
-                        onclick="gameWebsite.changePage(${this.currentPage - 1})">
+                        onclick="window.gameWebsite.changePage(${this.currentPage - 1})">
                     ← Previous
                 </button>
                 <div class="page-info">
                     Page ${this.currentPage} of ${totalPages}
                 </div>
                 <button class="page-btn next" ${this.currentPage === totalPages ? 'disabled' : ''} 
-                        onclick="gameWebsite.changePage(${this.currentPage + 1})">
+                        onclick="window.gameWebsite.changePage(${this.currentPage + 1})">
                     Next →
                 </button>
             </div>
@@ -733,7 +733,7 @@ class GameWebsite {
                 loadingEl.innerHTML = `
                     <div class="game-loading-error">
                         <p>Game loading timeout</p>
-                        <button onclick="gameWebsite.retryGame('${game.embed_url}')" class="retry-game-btn">Retry</button>
+                        <button onclick="window.gameWebsite.retryGame('${game.embed_url}')" class="retry-game-btn">Retry</button>
                     </div>
                 `;
             }
@@ -835,7 +835,7 @@ class GameWebsite {
 }
 
 // Initialize website
-let gameWebsite;
+window.gameWebsite = null; // 直接使用全局变量
 
 document.addEventListener('DOMContentLoaded', () => {
     window.gameWebsite = new GameWebsite();
