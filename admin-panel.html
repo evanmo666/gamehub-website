@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 顶部导航栏 */
+        .admin-header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #2563eb;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* 侧边栏 */
+        .admin-sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+            z-index: 90;
+        }
+        
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #4b5563;
+            transition: all 0.2s;
+        }
+        
+        .nav-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .nav-item:hover {
+            background: #f3f4f6;
+            color: #2563eb;
+        }
+        
+        .nav-item.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-right: 3px solid #2563eb;
+            font-weight: 500;
+        }
+        
+        /* 主内容区 */
+        .admin-main {
+            margin-left: 240px;
+            margin-top: 60px;
+            padding: 20px;
+        }
+        
+        .content-section {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .section-header h2 {
+            font-size: 24px;
+            color: #111827;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+        }
+        
+        .btn-outline:hover {
+            background: #f3f4f6;
+        }
+        
+        /* 表格样式 */
+        .games-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .games-table th,
+        .games-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .games-table th {
+            font-weight: 500;
+            color: #4b5563;
+            background: #f9fafb;
+        }
+        
+        .games-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* 统计卡片 */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 管理后台顶部导航 -->
+    <header class="admin-header">
+        <div class="logo">
+            <i class="fas fa-gamepad"></i>
+            <span>GameHub Admin</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="addGame()">
+                <i class="fas fa-plus"></i> 添加游戏
+            </button>
+            <button class="btn btn-outline" onclick="previewSite()">
+                <i class="fas fa-eye"></i> 预览网站
+            </button>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </button>
+        </div>
+    </header>
+
+    <!-- 侧边导航 -->
+    <aside class="admin-sidebar">
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active" onclick="showSection('games')">
+                    <i class="fas fa-gamepad"></i>
+                    <span>游戏管理</span>
+                </li>
+                <li class="nav-item" onclick="showSection('categories')">
+                    <i class="fas fa-tags"></i>
+                    <span>分类管理</span>
+                </li>
+                <li class="nav-item" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>设置</span>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="admin-main">
+        <!-- 游戏管理部分 -->
+        <section id="games-section" class="content-section active">
+            <div class="section-header">
+                <h2>游戏管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="refreshGamesList()">
+                        <i class="fas fa-sync-alt"></i> 刷新
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 统计卡片 -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-games">0</div>
+                    <div class="stat-label">总游戏数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-categories">0</div>
+                    <div class="stat-label">分类数量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="featured-games">0</div>
+                    <div class="stat-label">精选游戏</div>
+                </div>
+            </div>
+            
+            <!-- 搜索和筛选 -->
+            <div class="search-filters" style="margin-bottom: 20px;">
+                <input type="text" placeholder="搜索游戏..." style="width: 300px;">
+                <select style="width: 200px; margin-left: 10px;">
+                    <option value="">所有分类</option>
+                    <option value="action">动作</option>
+                    <option value="puzzle">益智</option>
+                    <option value="racing">竞速</option>
+                </select>
+            </div>
+            
+            <!-- 游戏表格 -->
+            <table class="games-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>游戏</th>
+                        <th>分类</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="games-list">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">暂无游戏数据</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- 分类管理部分 -->
+        <section id="categories-section" class="content-section">
+            <div class="section-header">
+                <h2>分类管理</h2>
+                <button class="btn btn-primary" onclick="addCategory()">
+                    <i class="fas fa-plus"></i> 添加分类
+                </button>
+            </div>
+            
+            <div id="categories-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                <!-- 分类将在这里显示 -->
+                <div style="text-align: center; grid-column: 1/-1; padding: 40px; color: #6b7280;">
+                    暂无分类数据
+                </div>
+            </div>
+        </section>
+        
+        <!-- 设置部分 -->
+        <section id="settings-section" class="content-section">
+            <div class="section-header">
+                <h2>网站设置</h2>
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> 保存设置
+                </button>
+            </div>
+            
+            <form id="settings-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 15px;">基本设置</h3>
+                        <div class="form-group">
+                            <label for="site-title">网站标题</label>
+                            <input type="text" id="site-title" value="GameHub - 在线游戏平台">
+                        </div>
+                        <div class="form-group">
+                            <label for="games-per-page">每页游戏数</label>
+                            <input type="number" id="games-per-page" value="12">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 15px;">上传设置</h3>
+                        <div class="form-group">
+                            <label for="max-file-size">最大文件大小 (MB)</label>
+                            <input type="number" id="max-file-size" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="auto-thumbnails">自动生成缩略图</label>
+                            <select id="auto-thumbnails">
+                                <option value="yes">是</option>
+                                <option value="no">否</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查登录状态
+            checkAuth();
+            
+            // 初始化页面数据
+            loadDashboardData();
+        });
+        
+        // 权限检查
+        function checkAuth() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true' || 
+                               sessionStorage.getItem('adminLoggedIn') === 'true';
+            
+            if (!isLoggedIn) {
+                window.location.href = '/admin-basic.html';
+            }
+        }
+        
+        // 加载仪表盘数据
+        function loadDashboardData() {
+            // 这里通常会从API获取数据，但现在我们使用本地存储的示例数据
+            const games = JSON.parse(localStorage.getItem('games') || '[]');
+            const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+            
+            // 更新统计数据
+            document.getElementById('total-games').textContent = games.length;
+            document.getElementById('total-categories').textContent = categories.length;
+            document.getElementById('featured-games').textContent = games.filter(game => game.featured).length;
+            
+            // 如果有游戏，则显示它们
+            renderGamesList(games);
+            renderCategoriesList(categories);
+        }
+        
+        // 渲染游戏列表
+        function renderGamesList(games) {
+            const tbody = document.getElementById('games-list');
+            
+            if (games.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">暂无游戏数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = games.map(game => `
+                <tr>
+                    <td><input type="checkbox" data-id="${game.id}"></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${game.thumbnail || 'placeholder.jpg'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                            <div>
+                                <div style="font-weight: 500;">${game.title}</div>
+                                <div style="font-size: 12px; color: #6b7280;">${game.url || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${game.category || '未分类'}</td>
+                    <td>${game.featured ? '<span style="background: #dcfce7; color: #059669; padding: 2px 8px; border-radius: 4px; font-size: 12px;">精选</span>' : '<span style="background: #f3f4f6; color: #6b7280; padding: 2px 8px; border-radius: 4px; font-size: 12px;">普通</span>'}</td>
+                    <td>
+                        <button class="btn btn-outline" style="padding: 4px 8px;" onclick="editGame(${game.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger" style="padding: 4px 8px;" onclick="deleteGame(${game.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 渲染分类列表
+        function renderCategoriesList(categories) {
+            const container = document.getElementById('categories-list');
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 40px; color: #6b7280;">暂无分类数据</div>';
+                return;
+            }
+            
+            container.innerHTML = categories.map(category => `
+                <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0; font-size: 18px;">${category.name}</h3>
+                        <div>
+                            <button class="btn btn-outline" style="padding: 4px 8px;" onclick="editCategory(${category.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger" style="padding: 4px 8px;" onclick="deleteCategory(${category.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #6b7280; font-size: 14px;">游戏数量: <strong>${category.gameCount || 0}</strong></div>
+                </div>
+            `).join('');
+        }
+        
+        // 显示指定的内容区域
+        function showSection(sectionId) {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 显示指定的内容区域
+            document.getElementById(`${sectionId}-section`).classList.add('active');
+            
+            // 更新侧边栏导航项的活动状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 设置当前导航项为活动状态
+            event.currentTarget.classList.add('active');
+        }
+        
+        // 预览网站
+        function previewSite() {
+            window.open('/', '_blank');
+        }
+        
+        // 添加游戏
+        function addGame() {
+            alert('添加游戏功能尚未实现');
+            // 通常会打开一个模态框来添加游戏
+        }
+        
+        // 编辑游戏
+        function editGame(id) {
+            alert(`编辑ID为${id}的游戏`);
+            // 通常会打开一个模态框来编辑游戏
+        }
+        
+        // 删除游戏
+        function deleteGame(id) {
+            if (confirm(`确定要删除ID为${id}的游戏吗？`)) {
+                alert('删除游戏功能尚未实现');
+                // 通常会从存储中删除游戏并刷新列表
+            }
+        }
+        
+        // 添加分类
+        function addCategory() {
+            alert('添加分类功能尚未实现');
+            // 通常会打开一个模态框来添加分类
+        }
+        
+        // 编辑分类
+        function editCategory(id) {
+            alert(`编辑ID为${id}的分类`);
+            // 通常会打开一个模态框来编辑分类
+        }
+        
+        // 删除分类
+        function deleteCategory(id) {
+            if (confirm(`确定要删除ID为${id}的分类吗？`)) {
+                alert('删除分类功能尚未实现');
+                // 通常会从存储中删除分类并刷新列表
+            }
+        }
+        
+        // 刷新游戏列表
+        function refreshGamesList() {
+            loadDashboardData();
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            alert('设置已保存！');
+            // 通常会保存设置到存储
+        }
+        
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('adminLoggedIn');
+                sessionStorage.removeItem('adminLoggedIn');
+                window.location.href = '/admin-basic.html';
+            }
+        }
+    </script>
+</body>
+</html> 
