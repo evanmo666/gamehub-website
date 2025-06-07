@@ -208,4 +208,9 @@ All games hosted on onlinegames.io platform.
 - Modal game player
 - Responsive design
 
+### Version 2.0.4 (2025-01-31) - Google Analytics Integration
+- **📊 NEW: Google Analytics**: 集成Google Analytics (G-L7Q3ZJ35WK)跟踪代码到所有页面
+- **🔧 FIXED: Verification**: 添加专用验证页面(gtag-verify.html)确保跟踪代码正确加载
+- **⚡ Performance**: 优化页面加载速度以提高跟踪效率
+
 Build Date: 2025-01-27

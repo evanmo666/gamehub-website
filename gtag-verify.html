@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Analytics Verification</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7Q3ZJ35WK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-L7Q3ZJ35WK');
+    </script>
+</head>
+<body>
+    <h1>Google Analytics Verification Page</h1>
+    <p>This page is used specifically to verify Google Analytics tracking code.</p>
+    <p>Time of page generation: <span id="current-time"></span></p>
+    
+    <script>
+        // 显示当前时间，确保页面不被缓存
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+        
+        // 手动触发一个事件，以确保Analytics能够接收到数据
+        gtag('event', 'verification_page_view', {
+          'event_category': 'verification',
+          'event_label': 'Google Analytics verification page'
+        });
+    </script>
+</body>
+</html> 
