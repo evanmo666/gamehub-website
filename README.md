@@ -165,6 +165,11 @@ All games hosted on onlinegames.io platform.
 
 ## Updates Log
 
+### Version 2.0.3 (2025-01-30) - Admin Panel CSS Optimization
+- **🔧 FIXED: Admin CSS**: Resolved CSS loading issues by inline styling in admin panel
+- **📱 Mobile Improvements**: Enhanced mobile responsiveness of admin UI
+- **⚡ Performance**: Reduced HTTP requests by eliminating external CSS file dependency
+
 ### Version 2.0.2 (2025-01-29) - Vercel Deployment & CSS Fixes
 - **🚀 NEW: Vercel Deployment**: Successfully deployed to Vercel with custom domain (onlinegame.run)
 - **🔧 FIXED: Admin CSS**: Fixed CSS loading issues in admin panel by correcting file paths
