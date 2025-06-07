@@ -5,9 +5,68 @@
 
 // 初始化管理面板
 document.addEventListener('DOMContentLoaded', function() {
+    // 尝试直接加载父窗口游戏数据
+    loadParentGameData();
+    
     const adminPanel = new AdminPanel();
     adminPanel.init();
 });
+
+// 尝试从父窗口获取游戏数据
+function loadParentGameData() {
+    try {
+        console.log('尝试从父窗口获取游戏数据');
+        
+        // 直接从index.html加载脚本
+        const scriptEl = document.createElement('script');
+        scriptEl.src = '../script.js';
+        scriptEl.onload = function() {
+            console.log('成功加载了script.js');
+            
+            // 创建一个临时GameWebsite对象来获取数据
+            if (typeof GameWebsite === 'function') {
+                console.log('找到GameWebsite类，尝试实例化');
+                try {
+                    const tempWebsite = new GameWebsite();
+                    // 这会初始化tempWebsite.games
+                } catch (e) {
+                    console.error('实例化GameWebsite失败:', e);
+                }
+            }
+        };
+        scriptEl.onerror = function() {
+            console.error('加载script.js失败');
+        };
+        
+        document.head.appendChild(scriptEl);
+        
+        // 加载原始数据
+        fetch('../index.html')
+            .then(response => response.text())
+            .then(html => {
+                // 解析HTML查找GAME_DATA
+                const match = html.match(/window\.GAME_DATA\s*=\s*(\[[\s\S]*?\]);/);
+                if (match && match[1]) {
+                    try {
+                        const jsonStr = match[1]
+                            .replace(/'/g, '"')
+                            .replace(/(\w+):/g, '"$1":')
+                            .replace(/,\s*]/g, ']');
+                            
+                        window.GAME_DATA = JSON.parse(jsonStr);
+                        console.log(`直接从HTML解析到 ${window.GAME_DATA.length} 个游戏`);
+                    } catch (e) {
+                        console.error('解析HTML中的游戏数据失败:', e);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('获取index.html失败:', error);
+            });
+    } catch (e) {
+        console.error('加载父窗口游戏数据失败:', e);
+    }
+}
 
 class AdminPanel {
     constructor() {
@@ -39,74 +98,185 @@ class AdminPanel {
             console.log('加载游戏数据...');
             this.showLoading();
             
-            // 1. 尝试从window.gameWebsite获取数据
-            if (window.gameWebsite && window.gameWebsite.games && window.gameWebsite.games.length > 0) {
-                this.games = [...window.gameWebsite.games];
-                console.log(`从全局变量加载了 ${this.games.length} 个游戏`);
-            } 
-            // 2. 尝试从HTML获取数据
-            else {
-                try {
-                    const htmlResponse = await fetch('../index.html');
-                    const html = await htmlResponse.text();
-                    const match = html.match(/const\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/);
-                    
-                    if (match && match[1]) {
-                        let jsonStr = match[1]
-                            .replace(/'/g, '"')
-                            .replace(/(\w+):/g, '"$1":');
-                            
-                        this.games = JSON.parse(jsonStr);
-                        console.log(`从HTML加载了 ${this.games.length} 个游戏`);
-                    } else {
-                        // 尝试从script.js加载
-                        const jsResponse = await fetch('../script.js');
-                        const js = await jsResponse.text();
-                        const jsMatch = js.match(/const\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/);
-                        
-                        if (jsMatch && jsMatch[1]) {
-                            let jsonStr = jsMatch[1]
-                                .replace(/'/g, '"')
-                                .replace(/(\w+):/g, '"$1":');
-                                
-                            this.games = JSON.parse(jsonStr);
-                            console.log(`从script.js加载了 ${this.games.length} 个游戏`);
-                        } else {
-                            // 加载示例数据
-                            this.loadSampleData();
-                        }
-                    }
-                } catch (error) {
-                    console.error('加载游戏数据失败:', error);
-                    this.loadSampleData();
-                }
-            }
-            
-            // 3. 尝试从localStorage获取管理员数据
+            // 1. 尝试从localStorage获取之前保存的数据
             const savedData = localStorage.getItem('gameAdminData');
             if (savedData) {
                 try {
-                    const adminData = JSON.parse(savedData);
-                    this.mergeAdminData(adminData);
-                    console.log('合并了本地保存的管理数据');
+                    const data = JSON.parse(savedData);
+                    if (data.games && data.games.length > 0) {
+                        console.log(`从本地存储加载了 ${data.games.length} 个游戏`);
+                        this.games = data.games;
+                        this.extractCategories();
+                        this.updateUI();
+                        this.hideLoading();
+                        return; // 成功加载，提前返回
+                    }
                 } catch (e) {
                     console.error('解析本地数据失败:', e);
                 }
             }
             
-            // 4. 提取分类
+            // 2. 尝试从window.GAME_DATA获取数据
+            if (window.GAME_DATA && Array.isArray(window.GAME_DATA) && window.GAME_DATA.length > 0) {
+                console.log(`从window.GAME_DATA加载了 ${window.GAME_DATA.length} 个游戏`);
+                this.games = [...window.GAME_DATA];
+                this.saveData();
+                this.extractCategories();
+                this.updateUI();
+                this.hideLoading();
+                return;
+            }
+            
+            // 3. 尝试从window.gameWebsite获取数据
+            if (window.gameWebsite && window.gameWebsite.games && Array.isArray(window.gameWebsite.games) && window.gameWebsite.games.length > 0) {
+                console.log(`从window.gameWebsite加载了 ${window.gameWebsite.games.length} 个游戏`);
+                this.games = [...window.gameWebsite.games];
+                this.saveData();
+                this.extractCategories();
+                this.updateUI();
+                this.hideLoading();
+                return;
+            }
+            
+            // 4. 尝试从HTML获取数据
+            try {
+                const htmlResponse = await fetch('../index.html');
+                const html = await htmlResponse.text();
+                
+                // 先查找script标签内window.GAME_DATA赋值
+                const windowGameDataPattern = /window\.GAME_DATA\s*=\s*(\[[\s\S]*?\])/;
+                const windowMatch = html.match(windowGameDataPattern);
+                
+                if (windowMatch && windowMatch[1]) {
+                    let jsonStr = windowMatch[1]
+                        .replace(/'/g, '"')
+                        .replace(/(\w+):/g, '"$1":')
+                        .replace(/,\s*]/g, ']');
+                        
+                    try {
+                        this.games = JSON.parse(jsonStr);
+                        console.log(`从HTML中的window.GAME_DATA加载了 ${this.games.length} 个游戏`);
+                        this.saveData();
+                        this.extractCategories();
+                        this.updateUI();
+                        this.hideLoading();
+                        return;
+                    } catch (e) {
+                        console.error('解析window.GAME_DATA失败:', e);
+                    }
+                }
+                
+                // 尝试匹配其他可能的格式
+                const patterns = [
+                    /const\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/,
+                    /var\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/,
+                    /GAME_DATA\s*=\s*(\[[\s\S]*?\]);/
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = html.match(pattern);
+                    if (match && match[1]) {
+                        let jsonStr = match[1]
+                            .replace(/'/g, '"')
+                            .replace(/(\w+):/g, '"$1":')
+                            .replace(/,\s*]/g, ']');
+                            
+                        try {
+                            this.games = JSON.parse(jsonStr);
+                            console.log(`从HTML加载了 ${this.games.length} 个游戏`);
+                            this.saveData();
+                            this.extractCategories();
+                            this.updateUI();
+                            this.hideLoading();
+                            return;
+                        } catch (e) {
+                            console.error(`解析HTML数据失败(${pattern})`, e);
+                        }
+                    }
+                }
+                
+                // 尝试从script.js加载
+                const jsResponse = await fetch('../script.js');
+                const js = await jsResponse.text();
+                
+                // 直接搜索游戏数组
+                const gameArrayPattern = /this\.games\s*=\s*window\.GAME_DATA/;
+                if (js.match(gameArrayPattern)) {
+                    // script.js使用了window.GAME_DATA，继续尝试从HTML中查找
+                    console.log('从script.js确认网站使用window.GAME_DATA，尝试从HTML中提取');
+                    
+                    const gameStartPattern = /\[\s*{\s*["']title["']:/;
+                    const gameStart = html.match(gameStartPattern);
+                    
+                    if (gameStart) {
+                        const startIndex = gameStart.index;
+                        let bracketCount = 0;
+                        let inQuote = false;
+                        let quoteType = null;
+                        let endIndex = -1;
+                        
+                        for (let i = startIndex; i < html.length; i++) {
+                            const char = html[i];
+                            
+                            if (char === '"' || char === "'") {
+                                if (!inQuote) {
+                                    inQuote = true;
+                                    quoteType = char;
+                                } else if (char === quoteType) {
+                                    inQuote = false;
+                                }
+                            }
+                            
+                            if (!inQuote) {
+                                if (char === '[') bracketCount++;
+                                if (char === ']') {
+                                    bracketCount--;
+                                    if (bracketCount === 0) {
+                                        endIndex = i + 1;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (endIndex > startIndex) {
+                            const jsonData = html.substring(startIndex, endIndex);
+                            try {
+                                let cleanedJson = jsonData
+                                    .replace(/'/g, '"')
+                                    .replace(/(\w+):/g, '"$1":')
+                                    .replace(/,\s*]/g, ']');
+                                
+                                this.games = JSON.parse(cleanedJson);
+                                console.log(`从HTML原始数据中提取了 ${this.games.length} 个游戏`);
+                                this.saveData();
+                                this.extractCategories();
+                                this.updateUI();
+                                this.hideLoading();
+                                return;
+                            } catch (e) {
+                                console.error('解析提取的JSON失败', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('加载游戏数据失败:', error);
+            }
+            
+            // 所有方法都失败，加载示例数据
+            console.log('所有加载方法都失败，使用示例数据');
+            this.loadSampleData();
             this.extractCategories();
-            
-            // 5. 加载设置
-            this.loadSettings();
-            
-            // 6. 更新UI
             this.updateUI();
-            this.hideLoading();
             
         } catch (error) {
             console.error('初始化数据失败:', error);
-            this.showErrorMessage('加载数据失败，请刷新页面重试');
+            this.showErrorMessage('加载数据失败，将使用示例数据');
+            this.loadSampleData();
+            this.extractCategories();
+            this.updateUI();
+        } finally {
             this.hideLoading();
         }
     }
