@@ -7,6 +7,10 @@ class AdminDashboard {
         this.categories = new Set();
         this.currentSection = 'dashboard';
         
+        // 添加缩略图处理变量
+        this.currentThumbnail = null;
+        this.currentEditThumbnail = null;
+        
         this.init();
     }
     
@@ -95,6 +99,128 @@ class AdminDashboard {
         if (addGameBtn) {
             addGameBtn.addEventListener('click', () => {
                 this.showAddGameDialog();
+            });
+        }
+        
+        // 添加游戏模态框事件
+        this.setupAddGameModal();
+        
+        // 编辑游戏模态框事件
+        this.setupEditGameModal();
+    }
+    
+    // 设置添加游戏模态框事件
+    setupAddGameModal() {
+        // 关闭按钮
+        const closeBtn = document.getElementById('closeAddGameModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                document.getElementById('addGameModal').style.display = 'none';
+            });
+        }
+        
+        // 取消按钮
+        const cancelBtn = document.getElementById('cancelAddGame');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                document.getElementById('addGameModal').style.display = 'none';
+            });
+        }
+        
+        // 缩略图上传
+        const thumbnailUpload = document.getElementById('thumbnailUpload');
+        if (thumbnailUpload) {
+            thumbnailUpload.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    this.handleThumbnailUpload(e.target.files[0], 'thumbnailPreview', 'thumbnailFilename');
+                }
+            });
+        }
+        
+        // 表单提交
+        const form = document.getElementById('addGameForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const formData = {
+                    title: document.getElementById('gameTitle').value,
+                    category: document.getElementById('gameCategory').value,
+                    url: document.getElementById('gameUrl').value,
+                    embedUrl: document.getElementById('gameEmbedUrl').value,
+                    featured: document.getElementById('gameFeatured').checked
+                };
+                
+                this.addGame(formData);
+            });
+        }
+        
+        // 点击模态框外部关闭
+        const modal = document.getElementById('addGameModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    }
+    
+    // 设置编辑游戏模态框事件
+    setupEditGameModal() {
+        // 关闭按钮
+        const closeBtn = document.getElementById('closeEditGameModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                document.getElementById('editGameModal').style.display = 'none';
+            });
+        }
+        
+        // 取消按钮
+        const cancelBtn = document.getElementById('cancelEditGame');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                document.getElementById('editGameModal').style.display = 'none';
+            });
+        }
+        
+        // 缩略图上传
+        const thumbnailUpload = document.getElementById('editThumbnailUpload');
+        if (thumbnailUpload) {
+            thumbnailUpload.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    this.handleThumbnailUpload(e.target.files[0], 'editThumbnailPreview', 'editThumbnailFilename', true);
+                }
+            });
+        }
+        
+        // 表单提交
+        const form = document.getElementById('editGameForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const index = document.getElementById('editGameIndex').value;
+                
+                const formData = {
+                    title: document.getElementById('editGameTitle').value,
+                    category: document.getElementById('editGameCategory').value,
+                    url: document.getElementById('editGameUrl').value,
+                    embedUrl: document.getElementById('editGameEmbedUrl').value,
+                    featured: document.getElementById('editGameFeatured').checked
+                };
+                
+                this.updateGame(formData, index);
+            });
+        }
+        
+        // 点击模态框外部关闭
+        const modal = document.getElementById('editGameModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
             });
         }
     }
@@ -358,7 +484,17 @@ class AdminDashboard {
         gamesTableBody.innerHTML = this.filteredGames.map((game, index) => `
             <tr>
                 <td>
-                    <div class="game-title">${game.title || '未命名游戏'}</div>
+                    <div class="game-item">
+                        <div class="game-thumbnail">
+                            ${game.thumbnail 
+                                ? `<img src="${game.thumbnail}" alt="${game.title}">` 
+                                : `<div class="game-thumbnail-placeholder">
+                                    <i class="fas fa-gamepad"></i>
+                                   </div>`
+                            }
+                        </div>
+                        <div class="game-title">${game.title || '未命名游戏'}</div>
+                    </div>
                 </td>
                 <td>
                     <span class="game-category">${game.category || '未分类'}</span>
@@ -369,8 +505,8 @@ class AdminDashboard {
                     </a>
                 </td>
                 <td>
-                    <span class="btn btn-success" style="font-size: 0.75rem; padding: 4px 8px;">
-                        <i class="fas fa-check"></i> 正常
+                    <span class="btn ${game.featured ? 'btn-warning' : 'btn-success'}" style="font-size: 0.75rem; padding: 4px 8px;">
+                        <i class="fas ${game.featured ? 'fa-star' : 'fa-check'}"></i> ${game.featured ? '精选' : '正常'}
                     </span>
                 </td>
                 <td>
@@ -412,19 +548,82 @@ class AdminDashboard {
         const game = this.filteredGames[index];
         if (!game) return;
         
-        const newTitle = prompt('请输入游戏名称:', game.title || '');
-        if (newTitle === null) return;
+        // 显示编辑模态框
+        const modal = document.getElementById('editGameModal');
+        if (!modal) return;
         
-        const newCategory = prompt('请输入游戏分类:', game.category || '');
-        if (newCategory === null) return;
+        // 填充表单
+        document.getElementById('editGameIndex').value = index;
+        document.getElementById('editGameTitle').value = game.title || '';
+        document.getElementById('editGameUrl').value = game.url || '';
+        document.getElementById('editGameEmbedUrl').value = game.embed_url || '';
+        document.getElementById('editGameFeatured').checked = game.featured || false;
         
-        const newUrl = prompt('请输入游戏链接:', game.url || '');
-        if (newUrl === null) return;
+        // 填充分类下拉列表
+        this.populateCategoryDropdown('editGameCategory');
+        
+        // 选择当前分类
+        const categorySelect = document.getElementById('editGameCategory');
+        if (categorySelect) {
+            // 检查是否有当前分类的选项
+            let categoryExists = false;
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value === game.category) {
+                    categorySelect.selectedIndex = i;
+                    categoryExists = true;
+                    break;
+                }
+            }
+            
+            // 如果没有当前分类的选项，添加一个
+            if (!categoryExists && game.category) {
+                const option = document.createElement('option');
+                option.value = game.category;
+                option.textContent = game.category;
+                categorySelect.appendChild(option);
+                categorySelect.value = game.category;
+            }
+        }
+        
+        // 显示缩略图
+        this.currentEditThumbnail = game.thumbnail || null;
+        const thumbnailPreview = document.getElementById('editThumbnailPreview');
+        const thumbnailFilename = document.getElementById('editThumbnailFilename');
+        
+        if (thumbnailPreview) {
+            if (game.thumbnail) {
+                thumbnailPreview.innerHTML = `<img src="${game.thumbnail}">`;
+                if (thumbnailFilename) {
+                    thumbnailFilename.textContent = '已有封面图片';
+                }
+            } else {
+                thumbnailPreview.innerHTML = '<i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>';
+                if (thumbnailFilename) {
+                    thumbnailFilename.textContent = '未设置封面';
+                }
+            }
+        }
+        
+        // 显示模态框
+        modal.style.display = 'block';
+    }
+    
+    // 更新游戏
+    updateGame(formData, index) {
+        const game = this.filteredGames[index];
+        if (!game) return;
         
         // 更新游戏信息
-        game.title = newTitle;
-        game.category = newCategory;
-        game.url = newUrl;
+        game.title = formData.title;
+        game.category = formData.category;
+        game.url = formData.url;
+        game.embed_url = formData.embedUrl || formData.url;
+        game.featured = formData.featured;
+        
+        // 如果上传了新缩略图，更新它
+        if (this.currentEditThumbnail) {
+            game.thumbnail = this.currentEditThumbnail;
+        }
         
         // 保存到localStorage
         this.saveGames();
@@ -433,7 +632,15 @@ class AdminDashboard {
         this.processGameData();
         this.displayGames();
         
-        alert('游戏信息已更新！');
+        // 关闭模态框
+        const modal = document.getElementById('editGameModal');
+        if (modal) modal.style.display = 'none';
+        
+        // 重置编辑缩略图
+        this.currentEditThumbnail = null;
+        
+        // 显示成功提示
+        this.showToast('游戏信息已更新！');
     }
     
     // 删除游戏
@@ -461,32 +668,134 @@ class AdminDashboard {
     
     // 显示添加游戏对话框
     showAddGameDialog() {
-        const title = prompt('请输入游戏名称:');
-        if (!title) return;
+        // 显示模态框
+        const modal = document.getElementById('addGameModal');
+        if (!modal) return;
         
-        const category = prompt('请输入游戏分类:');
-        if (!category) return;
+        // 清空表单
+        const form = document.getElementById('addGameForm');
+        if (form) form.reset();
         
-        const url = prompt('请输入游戏链接:');
-        if (!url) return;
+        // 清空缩略图预览
+        this.currentThumbnail = null;
+        const thumbnailPreview = document.getElementById('thumbnailPreview');
+        if (thumbnailPreview) {
+            thumbnailPreview.innerHTML = '<i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>';
+        }
+        const thumbnailFilename = document.getElementById('thumbnailFilename');
+        if (thumbnailFilename) thumbnailFilename.textContent = '未选择文件';
         
-        const embedUrl = prompt('请输入游戏嵌入链接 (可选):', '');
+        // 填充分类下拉列表
+        this.populateCategoryDropdown('gameCategory');
         
-        // 添加新游戏
-        const newGame = {
-            title: title,
-            category: category,
-            url: url,
-            embed_url: embedUrl || url,
-            featured: false
+        // 显示模态框
+        modal.style.display = 'block';
+    }
+    
+    // 填充分类下拉列表
+    populateCategoryDropdown(selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        // 保留第一个选项，清空其他选项
+        const firstOption = select.querySelector('option[value=""]');
+        select.innerHTML = '';
+        if (firstOption) select.appendChild(firstOption);
+        
+        // 添加分类选项
+        Array.from(this.categories).sort().forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            select.appendChild(option);
+        });
+    }
+    
+    // 处理缩略图上传
+    handleThumbnailUpload(file, previewId, filenameId, isEdit = false) {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        const preview = document.getElementById(previewId);
+        const filename = document.getElementById(filenameId);
+        
+        reader.onload = (e) => {
+            // 创建预览图像
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            preview.appendChild(img);
+            
+            // 更新文件名显示
+            if (filename) filename.textContent = file.name;
+            
+            // 保存缩略图数据
+            if (isEdit) {
+                this.currentEditThumbnail = e.target.result;
+            } else {
+                this.currentThumbnail = e.target.result;
+            }
         };
         
+        reader.readAsDataURL(file);
+    }
+    
+    // 添加游戏
+    addGame(formData) {
+        // 构建新游戏对象
+        const newGame = {
+            title: formData.title,
+            category: formData.category,
+            url: formData.url,
+            embed_url: formData.embedUrl || formData.url,
+            featured: formData.featured,
+            thumbnail: this.currentThumbnail || null
+        };
+        
+        // 添加到游戏列表并保存
         this.games.unshift(newGame);
         this.saveGames();
         this.processGameData();
         this.displayGames();
         
-        alert('游戏已添加！');
+        // 关闭模态框
+        const modal = document.getElementById('addGameModal');
+        if (modal) modal.style.display = 'none';
+        
+        // 重置缩略图
+        this.currentThumbnail = null;
+        
+        // 显示成功提示
+        this.showToast('游戏已成功添加！');
+    }
+    
+    // 显示提示消息
+    showToast(message, type = 'success') {
+        // 创建提示元素
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            </div>
+            <div class="toast-message">${message}</div>
+        `;
+        
+        // 添加到文档
+        document.body.appendChild(toast);
+        
+        // 动画显示
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // 自动关闭
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
     }
     
     // 保存游戏数据到localStorage

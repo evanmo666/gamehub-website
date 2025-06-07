@@ -36,6 +36,85 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
+        /* 游戏缩略图样式 */
+        .game-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .game-thumbnail {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .game-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .game-thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+        
+        /* 提示消息样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+        
+        .toast-success .toast-icon {
+            color: var(--success-color);
+        }
+        
+        .toast-error .toast-icon {
+            color: var(--danger-color);
+        }
+        
+        .toast-message {
+            font-weight: 500;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -480,6 +559,154 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-modal {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: var(--bg-secondary);
+        }
+
+        .form-checkbox {
+            margin-right: 8px;
+        }
+
+        .thumbnail-preview {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .thumbnail-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .thumbnail-upload {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .thumbnail-upload-btn {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+
+        .thumbnail-filename {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-save {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -697,6 +924,115 @@
         </main>
     </div>
     
+    <!-- 添加游戏模态框 -->
+    <div class="modal" id="addGameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加新游戏</h3>
+                <button class="close-modal" id="closeAddGameModal">&times;</button>
+            </div>
+            <form id="addGameForm">
+                <div class="form-group">
+                    <label class="form-label" for="gameTitle">游戏名称</label>
+                    <input type="text" id="gameTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gameCategory">游戏分类</label>
+                    <select id="gameCategory" class="form-select" required>
+                        <option value="">选择分类</option>
+                        <!-- 分类选项将由JavaScript动态填充 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gameUrl">游戏链接</label>
+                    <input type="url" id="gameUrl" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gameEmbedUrl">嵌入链接 (可选)</label>
+                    <input type="url" id="gameEmbedUrl" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">游戏封面</label>
+                    <div class="thumbnail-preview" id="thumbnailPreview">
+                        <i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>
+                    </div>
+                    <div class="thumbnail-upload">
+                        <label class="thumbnail-upload-btn">
+                            <i class="fas fa-upload"></i> 上传封面
+                            <input type="file" id="thumbnailUpload" accept="image/*" style="display: none;">
+                        </label>
+                        <span class="thumbnail-filename" id="thumbnailFilename">未选择文件</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-checkbox-label">
+                        <input type="checkbox" id="gameFeatured" class="form-checkbox">
+                        设为精选游戏
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelAddGame">取消</button>
+                    <button type="submit" class="btn-save">保存游戏</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 编辑游戏模态框 -->
+    <div class="modal" id="editGameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">编辑游戏</h3>
+                <button class="close-modal" id="closeEditGameModal">&times;</button>
+            </div>
+            <form id="editGameForm">
+                <input type="hidden" id="editGameIndex">
+                <div class="form-group">
+                    <label class="form-label" for="editGameTitle">游戏名称</label>
+                    <input type="text" id="editGameTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editGameCategory">游戏分类</label>
+                    <select id="editGameCategory" class="form-select" required>
+                        <option value="">选择分类</option>
+                        <!-- 分类选项将由JavaScript动态填充 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editGameUrl">游戏链接</label>
+                    <input type="url" id="editGameUrl" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editGameEmbedUrl">嵌入链接 (可选)</label>
+                    <input type="url" id="editGameEmbedUrl" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">游戏封面</label>
+                    <div class="thumbnail-preview" id="editThumbnailPreview">
+                        <i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>
+                    </div>
+                    <div class="thumbnail-upload">
+                        <label class="thumbnail-upload-btn">
+                            <i class="fas fa-upload"></i> 上传封面
+                            <input type="file" id="editThumbnailUpload" accept="image/*" style="display: none;">
+                        </label>
+                        <span class="thumbnail-filename" id="editThumbnailFilename">未选择文件</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-checkbox-label">
+                        <input type="checkbox" id="editGameFeatured" class="form-checkbox">
+                        设为精选游戏
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelEditGame">取消</button>
+                    <button type="submit" class="btn-save">保存更改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 管理后台JavaScript -->
     <script>
         // 登录检查
