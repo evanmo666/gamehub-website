@@ -707,6 +707,114 @@
             cursor: pointer;
             font-weight: 500;
         }
+        
+        /* 分页样式 */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 24px;
+            gap: 8px;
+        }
+        
+        .pagination-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination-btn:hover:not(.disabled):not(.active) {
+            background: var(--bg-primary);
+            border-color: var(--primary-color);
+        }
+        
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* SEO设置样式 */
+        .settings-section {
+            margin-bottom: 32px;
+        }
+        
+        .settings-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-secondary);
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .seo-preview {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        
+        .seo-preview-title {
+            color: #1a0dab;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .seo-preview-url {
+            color: #006621;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .seo-preview-desc {
+            color: #545454;
+            font-size: 14px;
+            line-height: 1.4;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
     </style>
 </head>
 <body>
@@ -890,6 +998,9 @@
                             <h3>暂无游戏数据</h3>
                             <p>点击上方"添加游戏"按钮开始添加游戏</p>
                         </div>
+                        
+                        <!-- 分页导航 -->
+                        <div class="pagination-container" id="gamesPagination"></div>
                     </div>
                 </div>
             </section>
@@ -916,7 +1027,60 @@
                     </div>
                     <div class="card-body">
                         <div id="settingsContent">
-                            <p>系统设置功能开发中...</p>
+                            <!-- SEO 设置 -->
+                            <div class="settings-section">
+                                <h4 class="settings-title">SEO 设置</h4>
+                                <form id="seoSettingsForm">
+                                    <div class="form-group">
+                                        <label class="form-label" for="siteName">网站名称</label>
+                                        <input type="text" id="siteName" class="form-input" placeholder="GameHub - 在线游戏平台">
+                                        <div class="form-help">建议在35个字符以内，目前：<span id="siteNameCount">0</span>/35</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="siteDescription">网站描述</label>
+                                        <textarea id="siteDescription" class="form-textarea" rows="3" placeholder="GameHub是一个提供多种在线游戏的平台，包含多种分类的免费游戏，无需下载即可畅玩..."></textarea>
+                                        <div class="form-help">建议在160个字符以内，目前：<span id="siteDescCount">0</span>/160</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="siteKeywords">关键词</label>
+                                        <input type="text" id="siteKeywords" class="form-input" placeholder="在线游戏,免费游戏,休闲游戏,益智游戏">
+                                        <div class="form-help">多个关键词用英文逗号分隔，建议5-8个关键词</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">SEO预览</label>
+                                        <div class="seo-preview">
+                                            <div class="seo-preview-title" id="seoPreviewTitle">GameHub - 在线游戏平台</div>
+                                            <div class="seo-preview-url">https://www.onlinegame.run/</div>
+                                            <div class="seo-preview-desc" id="seoPreviewDesc">GameHub是一个提供多种在线游戏的平台，包含多种分类的免费游戏，无需下载即可畅玩...</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-checkbox-label">
+                                            <input type="checkbox" id="enableIndexing" class="form-checkbox" checked>
+                                            允许搜索引擎索引网站
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-checkbox-label">
+                                            <input type="checkbox" id="enableSitemap" class="form-checkbox" checked>
+                                            自动生成站点地图 (sitemap.xml)
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary" id="saveSeoSettings">
+                                            <i class="fas fa-save"></i> 保存SEO设置
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- 其他设置可以在这里添加 -->
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,11 @@ class AdminDashboard {
         this.currentThumbnail = null;
         this.currentEditThumbnail = null;
         
+        // 添加分页相关变量
+        this.currentPage = 1;
+        this.gamesPerPage = 10;
+        this.totalPages = 1;
+        
         this.init();
     }
     
@@ -469,59 +474,148 @@ class AdminDashboard {
         const gamesTableBody = document.getElementById('gamesTableBody');
         const gamesEmpty = document.getElementById('gamesEmpty');
         const gamesTable = document.getElementById('gamesTable');
+        const paginationContainer = document.getElementById('gamesPagination');
         
         if (!gamesTableBody) return;
         
         if (this.filteredGames.length === 0) {
             if (gamesTable) gamesTable.style.display = 'none';
             if (gamesEmpty) gamesEmpty.style.display = 'block';
+            if (paginationContainer) paginationContainer.style.display = 'none';
             return;
         }
         
         if (gamesTable) gamesTable.style.display = 'table';
         if (gamesEmpty) gamesEmpty.style.display = 'none';
         
-        gamesTableBody.innerHTML = this.filteredGames.map((game, index) => `
-            <tr>
-                <td>
-                    <div class="game-item">
-                        <div class="game-thumbnail">
-                            ${game.thumbnail 
-                                ? `<img src="${game.thumbnail}" alt="${game.title}">` 
-                                : `<div class="game-thumbnail-placeholder">
-                                    <i class="fas fa-gamepad"></i>
-                                   </div>`
-                            }
+        // 计算分页
+        this.totalPages = Math.ceil(this.filteredGames.length / this.gamesPerPage);
+        if (this.currentPage > this.totalPages) {
+            this.currentPage = 1;
+        }
+        
+        // 获取当前页的游戏
+        const startIndex = (this.currentPage - 1) * this.gamesPerPage;
+        const endIndex = Math.min(startIndex + this.gamesPerPage, this.filteredGames.length);
+        const currentPageGames = this.filteredGames.slice(startIndex, endIndex);
+        
+        // 渲染游戏列表
+        gamesTableBody.innerHTML = currentPageGames.map((game, index) => {
+            const actualIndex = startIndex + index; // 计算在过滤后列表中的实际索引
+            return `
+                <tr>
+                    <td>
+                        <div class="game-item">
+                            <div class="game-thumbnail">
+                                ${game.thumbnail 
+                                    ? `<img src="${game.thumbnail}" alt="${game.title}">` 
+                                    : `<div class="game-thumbnail-placeholder">
+                                        <i class="fas fa-gamepad"></i>
+                                       </div>`
+                                }
+                            </div>
+                            <div class="game-title">${game.title || '未命名游戏'}</div>
                         </div>
-                        <div class="game-title">${game.title || '未命名游戏'}</div>
-                    </div>
-                </td>
-                <td>
-                    <span class="game-category">${game.category || '未分类'}</span>
-                </td>
-                <td>
-                    <a href="${game.url || '#'}" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px;">
-                        <i class="fas fa-external-link-alt"></i> 查看
-                    </a>
-                </td>
-                <td>
-                    <span class="btn ${game.featured ? 'btn-warning' : 'btn-success'}" style="font-size: 0.75rem; padding: 4px 8px;">
-                        <i class="fas ${game.featured ? 'fa-star' : 'fa-check'}"></i> ${game.featured ? '精选' : '正常'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-primary" style="font-size: 0.75rem; padding: 4px 8px; margin-right: 4px;" onclick="adminDashboard.editGame(${index})">
-                        <i class="fas fa-edit"></i> 编辑
-                    </button>
-                    <button class="btn" style="background: var(--danger-color); color: white; font-size: 0.75rem; padding: 4px 8px;" onclick="adminDashboard.deleteGame(${index})">
-                        <i class="fas fa-trash"></i> 删除
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+                    </td>
+                    <td>
+                        <span class="game-category">${game.category || '未分类'}</span>
+                    </td>
+                    <td>
+                        <a href="${game.url || '#'}" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px;">
+                            <i class="fas fa-external-link-alt"></i> 查看
+                        </a>
+                    </td>
+                    <td>
+                        <span class="btn ${game.featured ? 'btn-warning' : 'btn-success'}" style="font-size: 0.75rem; padding: 4px 8px;">
+                            <i class="fas ${game.featured ? 'fa-star' : 'fa-check'}"></i> ${game.featured ? '精选' : '正常'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" style="font-size: 0.75rem; padding: 4px 8px; margin-right: 4px;" onclick="adminDashboard.editGame(${actualIndex})">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="btn" style="background: var(--danger-color); color: white; font-size: 0.75rem; padding: 4px 8px;" onclick="adminDashboard.deleteGame(${actualIndex})">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // 更新分页导航
+        this.renderPagination();
         
         // 更新游戏数量
         this.updateStatistics();
+    }
+    
+    // 渲染分页导航
+    renderPagination() {
+        const paginationContainer = document.getElementById('gamesPagination');
+        if (!paginationContainer) return;
+        
+        if (this.totalPages <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        
+        paginationContainer.style.display = 'flex';
+        
+        // 生成分页按钮
+        let paginationHTML = `
+            <button class="pagination-btn ${this.currentPage === 1 ? 'disabled' : ''}" 
+                    ${this.currentPage === 1 ? 'disabled' : 'onclick="adminDashboard.changePage(1)"'}>
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="pagination-btn ${this.currentPage === 1 ? 'disabled' : ''}"
+                    ${this.currentPage === 1 ? 'disabled' : `onclick="adminDashboard.changePage(${this.currentPage - 1})"`}>
+                <i class="fas fa-angle-left"></i>
+            </button>
+        `;
+        
+        // 添加页码按钮
+        let startPage = Math.max(1, this.currentPage - 2);
+        let endPage = Math.min(this.totalPages, startPage + 4);
+        
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
+                        onclick="adminDashboard.changePage(${i})">
+                    ${i}
+                </button>
+            `;
+        }
+        
+        paginationHTML += `
+            <button class="pagination-btn ${this.currentPage === this.totalPages ? 'disabled' : ''}"
+                    ${this.currentPage === this.totalPages ? 'disabled' : `onclick="adminDashboard.changePage(${this.currentPage + 1})"`}>
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button class="pagination-btn ${this.currentPage === this.totalPages ? 'disabled' : ''}"
+                    ${this.currentPage === this.totalPages ? 'disabled' : `onclick="adminDashboard.changePage(${this.totalPages})"`}>
+                <i class="fas fa-angle-double-right"></i>
+            </button>
+        `;
+        
+        paginationContainer.innerHTML = paginationHTML;
+    }
+    
+    // 切换页面
+    changePage(pageNumber) {
+        if (pageNumber < 1 || pageNumber > this.totalPages) return;
+        
+        this.currentPage = pageNumber;
+        this.displayGames();
+        
+        // 滚动到顶部
+        window.scrollTo({
+            top: document.getElementById('gamesTable').offsetTop - 100,
+            behavior: 'smooth'
+        });
     }
     
     // 筛选游戏
@@ -540,6 +634,8 @@ class AdminDashboard {
             return matchesSearch && matchesCategory;
         });
         
+        // 重置分页到第一页
+        this.currentPage = 1;
         this.displayGames();
     }
     
@@ -841,23 +937,146 @@ class AdminDashboard {
     
     // 加载设置数据
     loadSettingsData() {
-        const settingsContent = document.getElementById('settingsContent');
-        if (!settingsContent) return;
+        // 加载SEO设置
+        this.loadSeoSettings();
         
-        settingsContent.innerHTML = `
-            <div style="max-width: 600px;">
-                <h4 style="margin-bottom: 16px;">基本设置</h4>
-                <div style="margin-bottom: 24px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">网站标题</label>
-                    <input type="text" value="GameHub" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
-                </div>
-                <div style="margin-bottom: 24px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">网站描述</label>
-                    <textarea rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;">GameHub - 在线游戏平台</textarea>
-                </div>
-                <button class="btn btn-primary">保存设置</button>
-            </div>
-        `;
+        // 添加SEO设置相关事件监听
+        this.setupSeoSettingsEvents();
+    }
+    
+    // 加载SEO设置
+    loadSeoSettings() {
+        // 从localStorage加载SEO设置
+        const seoSettings = JSON.parse(localStorage.getItem('gameSeoSettings')) || {
+            siteName: 'GameHub - 在线游戏平台',
+            siteDescription: 'GameHub是一个提供多种在线游戏的平台，包含多种分类的免费游戏，无需下载即可畅玩。',
+            siteKeywords: '在线游戏,免费游戏,休闲游戏,益智游戏,动作游戏,冒险游戏,多人游戏',
+            enableIndexing: true,
+            enableSitemap: true
+        };
+        
+        // 填充表单
+        const siteName = document.getElementById('siteName');
+        const siteDescription = document.getElementById('siteDescription');
+        const siteKeywords = document.getElementById('siteKeywords');
+        const enableIndexing = document.getElementById('enableIndexing');
+        const enableSitemap = document.getElementById('enableSitemap');
+        
+        if (siteName) siteName.value = seoSettings.siteName || '';
+        if (siteDescription) siteDescription.value = seoSettings.siteDescription || '';
+        if (siteKeywords) siteKeywords.value = seoSettings.siteKeywords || '';
+        if (enableIndexing) enableIndexing.checked = seoSettings.enableIndexing !== false;
+        if (enableSitemap) enableSitemap.checked = seoSettings.enableSitemap !== false;
+        
+        // 更新计数和预览
+        this.updateSeoPreview();
+        this.updateSeoCharCount();
+    }
+    
+    // 设置SEO设置相关事件监听
+    setupSeoSettingsEvents() {
+        // 表单提交事件
+        const seoForm = document.getElementById('seoSettingsForm');
+        if (seoForm) {
+            seoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveSeoSettings();
+            });
+        }
+        
+        // 实时更新预览
+        const siteName = document.getElementById('siteName');
+        const siteDescription = document.getElementById('siteDescription');
+        
+        if (siteName) {
+            siteName.addEventListener('input', () => {
+                this.updateSeoPreview();
+                this.updateSeoCharCount();
+            });
+        }
+        
+        if (siteDescription) {
+            siteDescription.addEventListener('input', () => {
+                this.updateSeoPreview();
+                this.updateSeoCharCount();
+            });
+        }
+    }
+    
+    // 更新SEO预览
+    updateSeoPreview() {
+        const siteName = document.getElementById('siteName');
+        const siteDescription = document.getElementById('siteDescription');
+        const previewTitle = document.getElementById('seoPreviewTitle');
+        const previewDesc = document.getElementById('seoPreviewDesc');
+        
+        if (siteName && previewTitle) {
+            previewTitle.textContent = siteName.value || 'GameHub - 在线游戏平台';
+        }
+        
+        if (siteDescription && previewDesc) {
+            previewDesc.textContent = siteDescription.value || 'GameHub是一个提供多种在线游戏的平台，包含多种分类的免费游戏，无需下载即可畅玩。';
+        }
+    }
+    
+    // 更新SEO字符计数
+    updateSeoCharCount() {
+        const siteName = document.getElementById('siteName');
+        const siteDescription = document.getElementById('siteDescription');
+        const siteNameCount = document.getElementById('siteNameCount');
+        const siteDescCount = document.getElementById('siteDescCount');
+        
+        if (siteName && siteNameCount) {
+            const length = siteName.value.length;
+            siteNameCount.textContent = length;
+            
+            if (length > 35) {
+                siteNameCount.style.color = 'var(--danger-color)';
+            } else {
+                siteNameCount.style.color = 'var(--text-muted)';
+            }
+        }
+        
+        if (siteDescription && siteDescCount) {
+            const length = siteDescription.value.length;
+            siteDescCount.textContent = length;
+            
+            if (length > 160) {
+                siteDescCount.style.color = 'var(--danger-color)';
+            } else {
+                siteDescCount.style.color = 'var(--text-muted)';
+            }
+        }
+    }
+    
+    // 保存SEO设置
+    saveSeoSettings() {
+        const siteName = document.getElementById('siteName');
+        const siteDescription = document.getElementById('siteDescription');
+        const siteKeywords = document.getElementById('siteKeywords');
+        const enableIndexing = document.getElementById('enableIndexing');
+        const enableSitemap = document.getElementById('enableSitemap');
+        
+        if (!siteName || !siteDescription || !siteKeywords) return;
+        
+        // 构建SEO设置对象
+        const seoSettings = {
+            siteName: siteName.value,
+            siteDescription: siteDescription.value,
+            siteKeywords: siteKeywords.value,
+            enableIndexing: enableIndexing ? enableIndexing.checked : true,
+            enableSitemap: enableSitemap ? enableSitemap.checked : true,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        // 保存到localStorage
+        localStorage.setItem('gameSeoSettings', JSON.stringify(seoSettings));
+        
+        // 显示成功提示
+        this.showToast('SEO设置已保存成功！');
+        
+        // 如果indexing设置改变，更新robots.txt文件（实际环境中需要服务器支持）
+        console.log('SEO设置已更新:', seoSettings);
     }
     
     // 退出登录
