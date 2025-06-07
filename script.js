@@ -649,18 +649,13 @@ class GameWebsite {
             fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
         }
         
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeGameModal();
-                }
-            });
-        }
-
-        // ESC key to close
+        // 移除点击弹窗外部关闭的行为，提升游戏体验
+        // 仅保留ESC键关闭功能，但添加确认
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
-                this.closeGameModal();
+                if (confirm('确定要关闭游戏吗？')) {
+                    this.closeGameModal();
+                }
             }
         });
     }
