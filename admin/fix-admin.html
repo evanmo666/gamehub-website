@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理面板修复工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #1a56db;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .container {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre;
+        }
+        .button {
+            background: #1a56db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background: #1e429f;
+        }
+        .steps {
+            margin-top: 20px;
+        }
+        .step {
+            margin-bottom: 15px;
+            background: #fff;
+            padding: 15px;
+            border-left: 3px solid #1a56db;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .info-box {
+            background: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GameHub管理面板修复工具</h1>
+    
+    <div class="info-box">
+        <p>这个页面提供了修复管理面板问题的临时解决方案。请按照以下步骤操作：</p>
+    </div>
+
+    <div class="steps">
+        <div class="step">
+            <h3>步骤 1: 打开管理面板</h3>
+            <p>首先打开管理面板页面 (<a href="/admin/" target="_blank">/admin/</a>)</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 打开浏览器控制台</h3>
+            <p>在管理面板页面打开浏览器开发者工具：</p>
+            <ul>
+                <li>Chrome: 按 F12 或 右键 -> 检查</li>
+                <li>Firefox: 按 F12 或 右键 -> 检查元素</li>
+                <li>Edge: 按 F12 或 右键 -> 检查</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 复制以下代码</h3>
+            <div class="container">
+                <div class="code-block" id="codeBlock">// 这个文件包含修复后台管理页面的临时代码
+// 请在控制台中复制并执行以下代码
+
+(function() {
+    console.log("开始修复管理面板...");
+    
+    // 1. 确保window.gameWebsite存在，并正确初始化
+    if (!window.gameWebsite) {
+        window.gameWebsite = {
+            games: [],
+            categories: [],
+            initAdmin: function() {
+                console.log("初始化管理面板...");
+                this.loadGames();
+                this.setupAdminUI();
+            },
+            loadGames: async function() {
+                try {
+                    console.log("尝试加载游戏数据...");
+                    
+                    // 尝试从全局变量获取
+                    if (window.GAME_DATA && Array.isArray(window.GAME_DATA)) {
+                        this.games = window.GAME_DATA;
+                        console.log(`从全局变量加载了 ${this.games.length} 个游戏`);
+                        return;
+                    }
+                    
+                    // 尝试从HTML加载
+                    const htmlResponse = await fetch('../index.html');
+                    const htmlText = await htmlResponse.text();
+                    const gameDataMatch = htmlText.match(/const\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/);
+                    
+                    if (gameDataMatch && gameDataMatch[1]) {
+                        try {
+                            // 替换单引号为双引号，并确保属性名有引号
+                            let jsonStr = gameDataMatch[1]
+                                .replace(/'/g, '"')
+                                .replace(/(\w+):/g, '"$1":');
+                                
+                            this.games = JSON.parse(jsonStr);
+                            console.log(`从HTML加载了 ${this.games.length} 个游戏`);
+                            return;
+                        } catch (e) {
+                            console.error("解析HTML中的游戏数据出错:", e);
+                        }
+                    }
+                    
+                    // 尝试从script.js加载
+                    const scriptResponse = await fetch('../script.js');
+                    const scriptText = await scriptResponse.text();
+                    const scriptDataMatch = scriptText.match(/const\s+GAME_DATA\s*=\s*(\[[\s\S]*?\]);/);
+                    
+                    if (scriptDataMatch && scriptDataMatch[1]) {
+                        try {
+                            let jsonStr = scriptDataMatch[1]
+                                .replace(/'/g, '"')
+                                .replace(/(\w+):/g, '"$1":');
+                                
+                            this.games = JSON.parse(jsonStr);
+                            console.log(`从script.js加载了 ${this.games.length} 个游戏`);
+                            return;
+                        } catch (e) {
+                            console.error("解析script.js中的游戏数据出错:", e);
+                        }
+                    }
+                    
+                    // 如果都失败了，加载示例数据
+                    console.log("所有加载方法都失败，使用示例数据");
+                    this.loadSampleData();
+                    
+                } catch (error) {
+                    console.error("加载游戏数据出错:", error);
+                    this.loadSampleData();
+                }
+            },
+            loadSampleData: function() {
+                this.games = [
+                    {
+                        title: "Mini Cars Racing",
+                        category: "Racing",
+                        url: "https://example.com/game1",
+                        embed_url: "https://example.com/embed/game1",
+                        description: "Race with mini cars on exciting tracks!"
+                    },
+                    {
+                        title: "Pyramid Solitaire",
+                        category: "Card",
+                        url: "https://example.com/game2",
+                        embed_url: "https://example.com/embed/game2",
+                        description: "Classic pyramid solitaire card game"
+                    },
+                    {
+                        title: "Solitaire",
+                        category: "Card",
+                        url: "https://example.com/game3",
+                        embed_url: "https://example.com/embed/game3",
+                        description: "The classic solitaire card game"
+                    }
+                ];
+                
+                console.log("加载了示例游戏数据");
+            },
+            setupAdminUI: function() {
+                // 更新游戏数据表格
+                this.updateGameTable();
+                
+                // 更新统计数据
+                this.updateStats();
+                
+                // 填充分类选项
+                this.populateCategories();
+            },
+            updateGameTable: function() {
+                const tableBody = document.getElementById('gamesTableBody');
+                if (!tableBody) {
+                    console.error("找不到游戏表格元素");
+                    return;
+                }
+                
+                if (!this.games || this.games.length === 0) {
+                    tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <i class="fas fa-gamepad fa-3x text-muted mb-3"></i>
+                            <p>暂无游戏数据</p>
+                            <button class="btn btn-primary" onclick="showAddGameModal()">
+                                <i class="fas fa-plus"></i> 添加游戏
+                            </button>
+                        </td>
+                    </tr>`;
+                    return;
+                }
+                
+                const html = this.games.map(game => `
+                <tr>
+                    <td><input type="checkbox" class="game-checkbox" value="${game.title}"></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="game-thumbnail me-2">
+                                <img src="${game.thumbnail || 'https://via.placeholder.com/50'}" alt="${game.title}" width="50">
+                            </div>
+                            <div>
+                                <div class="fw-bold">${game.title}</div>
+                                <small class="text-muted">${game.category || 'Uncategorized'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${game.category || 'Uncategorized'}</td>
+                    <td>
+                        <a href="${game.url || '#'}" target="_blank" class="text-truncate d-inline-block" style="max-width:200px">
+                            ${game.url || 'No URL'}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge ${game.featured ? 'bg-warning' : 'bg-success'}">
+                            ${game.featured ? '精选' : '上线'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary edit-game" data-title="${game.title}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-game" data-title="${game.title}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+                
+                tableBody.innerHTML = html;
+                
+                // 添加事件监听器
+                document.querySelectorAll('.edit-game').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const title = e.currentTarget.dataset.title;
+                        this.editGame(title);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-game').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const title = e.currentTarget.dataset.title;
+                        this.deleteGame(title);
+                    });
+                });
+            },
+            updateStats: function() {
+                // 更新统计数字
+                const gamesCount = document.getElementById('totalGamesCount');
+                const categoriesCount = document.getElementById('totalCategoriesCount');
+                const featuredCount = document.getElementById('featuredGamesCount');
+                
+                if (gamesCount) gamesCount.textContent = this.games.length;
+                
+                // 计算分类数
+                this.categories = [...new Set(this.games.map(g => g.category).filter(c => c))];
+                if (categoriesCount) categoriesCount.textContent = this.categories.length;
+                
+                // 计算精选游戏
+                const featured = this.games.filter(g => g.featured || g.category === 'Featured').length;
+                if (featuredCount) featuredCount.textContent = featured;
+            },
+            populateCategories: function() {
+                const categorySelect = document.getElementById('gameCategoryFilter');
+                const categoryDropdown = document.getElementById('gameCategory');
+                
+                if (!categorySelect && !categoryDropdown) return;
+                
+                const options = this.categories.map(cat => 
+                    `<option value="${cat}">${cat}</option>`
+                ).join('');
+                
+                if (categorySelect) {
+                    categorySelect.innerHTML = '<option value="all">所有分类</option>' + options;
+                }
+                
+                if (categoryDropdown) {
+                    categoryDropdown.innerHTML = '<option value="" disabled selected>选择分类</option>' + options;
+                }
+            },
+            editGame: function(title) {
+                const game = this.games.find(g => g.title === title);
+                if (!game) return;
+                
+                // 填充表单
+                document.getElementById('gameModalTitle').textContent = '编辑游戏';
+                document.getElementById('gameId').value = title; // 使用标题作为ID
+                document.getElementById('gameTitle').value = game.title;
+                
+                const categorySelect = document.getElementById('gameCategory');
+                if (categorySelect) {
+                    // 如果分类不存在，添加它
+                    if (game.category && !this.categories.includes(game.category)) {
+                        categorySelect.innerHTML += `<option value="${game.category}">${game.category}</option>`;
+                    }
+                    categorySelect.value = game.category || '';
+                }
+                
+                document.getElementById('gameUrl').value = game.url || '';
+                document.getElementById('gameEmbedUrl').value = game.embed_url || '';
+                document.getElementById('gameDescription').value = game.description || '';
+                
+                const featuredCheck = document.getElementById('gameFeatured');
+                if (featuredCheck) {
+                    featuredCheck.checked = game.featured || game.category === 'Featured';
+                }
+                
+                // 显示缩略图
+                const previewDiv = document.getElementById('thumbnailPreview');
+                if (previewDiv && game.thumbnail) {
+                    previewDiv.innerHTML = `<img src="${game.thumbnail}" alt="${game.title}" class="img-fluid">`;
+                    document.getElementById('gameThumbnailUrl').value = game.thumbnail;
+                }
+                
+                // 显示模态框
+                const gameModal = new bootstrap.Modal(document.getElementById('gameModal'));
+                gameModal.show();
+            },
+            deleteGame: function(title) {
+                if (confirm(`确定要删除游戏 "${title}" 吗？`)) {
+                    this.games = this.games.filter(g => g.title !== title);
+                    this.updateGameTable();
+                    this.updateStats();
+                    alert('游戏已删除');
+                }
+            }
+        };
+    }
+    
+    // 2. 执行初始化
+    console.log("尝试执行初始化...");
+    try {
+        window.gameWebsite.initAdmin();
+        console.log("管理面板已初始化");
+    } catch (e) {
+        console.error("初始化出错:", e);
+    }
+    
+    // 3. 绑定全局函数
+    window.showAddGameModal = function() {
+        document.getElementById('gameModalTitle').textContent = '添加游戏';
+        document.getElementById('gameId').value = '';
+        document.getElementById('gameForm').reset();
+        
+        const gameModal = new bootstrap.Modal(document.getElementById('gameModal'));
+        gameModal.show();
+    };
+    
+    window.saveGame = function() {
+        const id = document.getElementById('gameId').value;
+        const title = document.getElementById('gameTitle').value;
+        const category = document.getElementById('gameCategory').value;
+        const url = document.getElementById('gameUrl').value;
+        const embedUrl = document.getElementById('gameEmbedUrl').value;
+        const description = document.getElementById('gameDescription').value;
+        const featured = document.getElementById('gameFeatured').checked;
+        const thumbnailUrl = document.getElementById('gameThumbnailUrl').value;
+        
+        if (!title || !category || !url || !embedUrl) {
+            alert('请填写所有必填字段');
+            return;
+        }
+        
+        const game = {
+            title: title,
+            category: category,
+            url: url,
+            embed_url: embedUrl,
+            description: description,
+            featured: featured,
+            thumbnail: thumbnailUrl
+        };
+        
+        if (id) {
+            // 编辑现有游戏
+            const index = window.gameWebsite.games.findIndex(g => g.title === id);
+            if (index !== -1) {
+                window.gameWebsite.games[index] = game;
+            }
+        } else {
+            // 添加新游戏
+            window.gameWebsite.games.push(game);
+        }
+        
+        // 更新UI
+        window.gameWebsite.updateGameTable();
+        window.gameWebsite.updateStats();
+        window.gameWebsite.populateCategories();
+        
+        // 关闭模态框
+        const gameModal = bootstrap.Modal.getInstance(document.getElementById('gameModal'));
+        if (gameModal) gameModal.hide();
+        
+        alert('游戏已保存');
+    };
+    
+    // 4. 给保存按钮添加事件
+    const saveBtn = document.getElementById('saveGameBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', window.saveGame);
+    }
+    
+    console.log("修复完成");
+})();</div>
+                <button class="button" id="copyButton">复制代码</button>
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 4: 粘贴到控制台并运行</h3>
+            <p>在浏览器控制台中粘贴代码并按回车键运行</p>
+            <p>你应该会看到管理面板自动刷新并显示游戏数据</p>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h3>为什么需要这个修复？</h3>
+        <p>原有的管理页面在加载游戏数据时出现了问题，这个临时解决方案通过直接在浏览器中注入必要的代码来恢复管理功能。我们将在下一个更新中永久修复这个问题。</p>
+    </div>
+
+    <script>
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const codeBlock = document.getElementById('codeBlock');
+            const range = document.createRange();
+            range.selectNode(codeBlock);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            
+            this.textContent = '已复制!';
+            setTimeout(() => {
+                this.textContent = '复制代码';
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 
