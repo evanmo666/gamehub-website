@@ -9,6 +9,7 @@ class GameWebsite {
         this.searchTimeout = null;
         this.currentSort = 'default';
         this.isExpanded = false;
+        this.toastTimeout = null;
         
         this.init();
     }
@@ -39,31 +40,55 @@ class GameWebsite {
             await new Promise(resolve => setTimeout(resolve, 800));
             this.games = window.GAME_DATA || [];
             
-            // 加载管理后台保存的数据
+            // 加载管理后台保存的数据（支持两种存储键）
+            let adminData = null;
+            
+            // 先尝试从gameAdminData键加载
             const savedData = localStorage.getItem('gameAdminData');
             if (savedData) {
                 try {
-                    const adminData = JSON.parse(savedData);
-                    if (adminData && adminData.games) {
-                        console.log('从管理后台加载游戏数据:', adminData.games.length);
-                        
-                        // 将管理后台数据与原始数据合并
-                        this.games = this.games.map(game => {
-                            const savedGame = adminData.games.find(g => g.title === game.title);
-                            return savedGame ? { ...game, ...savedGame } : game;
-                        });
-                        
-                        // 添加管理后台中新增的游戏
-                        const existingTitles = this.games.map(g => g.title);
-                        const newGames = adminData.games.filter(g => !existingTitles.includes(g.title));
-                        if (newGames.length > 0) {
-                            console.log('添加管理后台中新增的游戏:', newGames.length);
-                            this.games = [...this.games, ...newGames];
-                        }
-                    }
+                    adminData = JSON.parse(savedData);
+                    console.log('从gameAdminData加载游戏数据:', adminData.games?.length || 0);
                 } catch (e) {
-                    console.error('解析管理后台数据出错:', e);
+                    console.error('解析gameAdminData出错:', e);
                 }
+            }
+            
+            // 如果gameAdminData不存在，尝试从adminGames键加载
+            if (!adminData) {
+                const adminGames = localStorage.getItem('adminGames');
+                if (adminGames) {
+                    try {
+                        const games = JSON.parse(adminGames);
+                        if (Array.isArray(games)) {
+                            adminData = { games };
+                            console.log('从adminGames加载游戏数据:', games.length);
+                        }
+                    } catch (e) {
+                        console.error('解析adminGames出错:', e);
+                    }
+                }
+            }
+            
+            // 处理管理后台数据
+            if (adminData && adminData.games && adminData.games.length > 0) {
+                // 将管理后台数据与原始数据合并
+                this.games = this.games.map(game => {
+                    const savedGame = adminData.games.find(g => g.title === game.title);
+                    return savedGame ? { ...game, ...savedGame } : game;
+                });
+                
+                // 添加管理后台中新增的游戏
+                const existingTitles = this.games.map(g => g.title);
+                const newGames = adminData.games.filter(g => !existingTitles.includes(g.title));
+                if (newGames.length > 0) {
+                    console.log('添加管理后台中新增的游戏:', newGames.length);
+                    this.games = [...this.games, ...newGames];
+                }
+                
+                // 检查管理后台游戏中有多少带缩略图的
+                const gamesWithThumbnail = this.games.filter(g => g.thumbnail).length;
+                console.log('带有自定义缩略图的游戏数量:', gamesWithThumbnail);
             }
             
             this.allCategories = [...new Set(this.games.map(game => game.category))].sort();
@@ -826,6 +851,50 @@ class GameWebsite {
                 }, 500);
             }
         }
+    }
+    
+    // 显示Toast提示消息
+    showToast(message, type = 'info') {
+        // 清除现有的toast超时
+        if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+            const existingToast = document.getElementById('gameToast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+        }
+        
+        // 创建toast元素
+        const toast = document.createElement('div');
+        toast.id = 'gameToast';
+        toast.className = `game-toast ${type}`;
+        
+        // 设置图标
+        let icon = '🔔';
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
+        if (type === 'warning') icon = '⚠️';
+        
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-message">${message}</div>
+        `;
+        
+        // 添加到文档
+        document.body.appendChild(toast);
+        
+        // 动画显示
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // 设置自动消失
+        this.toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 5000);
     }
 }
 

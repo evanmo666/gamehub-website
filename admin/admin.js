@@ -801,7 +801,16 @@ class AdminDashboard {
     // 保存游戏数据到localStorage
     saveGames() {
         try {
+            // 保存到adminGames键（管理后台使用）
             localStorage.setItem('adminGames', JSON.stringify(this.games));
+            
+            // 同时保存到gameAdminData键（前端网站使用）
+            localStorage.setItem('gameAdminData', JSON.stringify({
+                games: this.games,
+                lastUpdated: new Date().toISOString()
+            }));
+            
+            console.log('游戏数据已保存到两个存储键中，共', this.games.length, '个游戏');
         } catch (error) {
             console.error('保存游戏数据失败:', error);
         }
