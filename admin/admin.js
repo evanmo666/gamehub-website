@@ -14,6 +14,18 @@ class AdminDashboard {
     init() {
         this.checkAuthentication();
         this.setupEventListeners();
+        
+        // 监听游戏数据加载完成事件
+        document.addEventListener('game-data-loaded', (event) => {
+            console.log(`游戏数据加载完成事件触发，共 ${event.detail.gameCount} 个游戏`);
+            this.loadGameData();
+            this.updateStatistics();
+            
+            // 重新初始化当前页面
+            this.initSection(this.currentSection);
+        });
+        
+        // 初始加载游戏数据
         this.loadGameData();
         this.updateStatistics();
     }
