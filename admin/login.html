@@ -270,7 +270,7 @@
         function checkExistingLogin() {
             const isLoggedIn = localStorage.getItem('adminLoggedIn') || sessionStorage.getItem('adminLoggedIn');
             if (isLoggedIn === 'true') {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard.html';
             }
         }
         
@@ -326,7 +326,7 @@
                     showAlert('登录成功！正在跳转...', 'success');
                     
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        window.location.href = 'dashboard.html';
                     }, 1000);
                 } else {
                     // 登录失败
