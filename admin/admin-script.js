@@ -1,3 +1,6 @@
+// 首先确保window.gameWebsite存在
+window.gameWebsite = window.gameWebsite || {};
+
 class GameAdmin {
     constructor() {
         this.games = [];
@@ -51,6 +54,9 @@ class GameAdmin {
                         
                         this.games = JSON.parse(jsonStr);
                         console.log(`从HTML加载了 ${this.games.length} 个游戏`);
+                        
+                        // 添加到全局对象，确保其他脚本可以访问
+                        window.gameWebsite.games = this.games;
                     } catch (jsonError) {
                         console.error("HTML数据JSON解析错误:", jsonError);
                         console.log("原始数据:", htmlDataMatch[1].substring(0, 200));
@@ -75,6 +81,9 @@ class GameAdmin {
                                 
                             this.games = JSON.parse(jsonStr);
                             console.log(`成功从script.js加载 ${this.games.length} 个游戏`);
+                            
+                            // 添加到全局对象
+                            window.gameWebsite.games = this.games;
                         } catch (jsonError) {
                             console.error("Script数据JSON解析错误:", jsonError);
                             this.loadSampleData();
@@ -98,6 +107,7 @@ class GameAdmin {
             }
             
             this.categories = [...new Set(this.games.map(game => game.category))].sort();
+            window.gameWebsite.categories = this.categories;
             this.populateCategoryOptions();
             console.log(`加载了 ${this.categories.length} 个分类`);
             
@@ -149,6 +159,10 @@ class GameAdmin {
                 description: "A featured game example"
             }
         ];
+        
+        // 添加到全局对象
+        window.gameWebsite.games = this.games;
+        
         this.showToast('Loaded sample data for demonstration', 'info');
     }
 
