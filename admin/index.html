@@ -1,1 +1,303 @@
- 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - 管理后台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-gamepad me-2"></i>GameHub 管理后台
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-white me-3">
+                    <i class="fas fa-user me-1"></i>管理员
+                </span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>退出
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 统计卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-gamepad fa-2x mb-2"></i>
+                        <h3 id="totalGames">10</h3>
+                        <p class="mb-0">总游戏数</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tags fa-2x mb-2"></i>
+                        <h3 id="totalCategories">6</h3>
+                        <p class="mb-0">游戏分类</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-star fa-2x mb-2"></i>
+                        <h3 id="featuredGames">3</h3>
+                        <p class="mb-0">精选游戏</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏列表 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">游戏列表</h5>
+                <div>
+                    <input type="text" class="form-control d-inline-block me-2" style="width: 200px;" 
+                           id="searchInput" placeholder="搜索游戏...">
+                    <select class="form-select d-inline-block" style="width: 150px;" id="categoryFilter">
+                        <option value="all">所有分类</option>
+                        <option value="Featured">精选</option>
+                        <option value="Racing">赛车</option>
+                        <option value="Action">动作</option>
+                        <option value="Puzzle">益智</option>
+                        <option value="Adventure">冒险</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row" id="gamesList">
+                    <!-- 游戏卡片将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 游戏数据
+        const GAMES_DATA = [
+            {
+                "title": "Mini Cars Racing",
+                "category": "Featured",
+                "url": "https://easygamefind.com/games/mini-cars-racing/",
+                "embed_url": "https://cloud.onlinegames.io/games/2021/unity/mini-cars-racing/index-og.html",
+                "description": "精彩的迷你赛车游戏",
+                "featured": true,
+                "id": 1
+            },
+            {
+                "title": "Pyramid Solitaire",
+                "category": "Featured",
+                "url": "https://easygamefind.com/games/pyramid-solitaire/",
+                "embed_url": "https://cloud.onlinegames.io/games/2025/html/solitaire/index-og.html#pyramid",
+                "description": "经典金字塔纸牌游戏",
+                "featured": true,
+                "id": 2
+            },
+            {
+                "title": "Solitaire",
+                "category": "Featured",
+                "url": "https://easygamefind.com/games/solitaire/",
+                "embed_url": "https://cloud.onlinegames.io/games/2025/html/solitaire/index-og.html",
+                "description": "经典纸牌游戏",
+                "featured": true,
+                "id": 3
+            },
+            {
+                "title": "Drift King",
+                "category": "Racing",
+                "url": "https://easygamefind.com/games/drift-king/",
+                "embed_url": "https://www.onlinegames.io/games/2024/unity/drift-king/index.html",
+                "description": "漂移之王赛车游戏",
+                "featured": false,
+                "id": 4
+            },
+            {
+                "title": "Love Tester",
+                "category": "Puzzle",
+                "url": "https://easygamefind.com/games/love-tester/",
+                "embed_url": "https://www.onlinegames.io/games/2021/3/love-tester/index.html",
+                "description": "爱情测试小游戏",
+                "featured": false,
+                "id": 5
+            },
+            {
+                "title": "Highway Traffic",
+                "category": "Racing",
+                "url": "https://easygamefind.com/games/highway-traffic/",
+                "embed_url": "https://www.onlinegames.io/games/2022/unity/highway-traffic/index.html",
+                "description": "高速公路交通游戏",
+                "featured": false,
+                "id": 6
+            },
+            {
+                "title": "Fast Food Rush",
+                "category": "Action",
+                "url": "https://easygamefind.com/games/fast-food-rush/",
+                "embed_url": "https://cloud.onlinegames.io/games/2025/unity/fast-food-rush/index-og.html",
+                "description": "快餐店经营游戏",
+                "featured": false,
+                "id": 7
+            },
+            {
+                "title": "Stack Fire Ball",
+                "category": "Action",
+                "url": "https://easygamefind.com/games/stack-fire-ball/",
+                "embed_url": "https://www.onlinegames.io/games/2021/unity/stack-fire-ball/index.html",
+                "description": "堆叠火球游戏",
+                "featured": false,
+                "id": 8
+            },
+            {
+                "title": "Masked Special Forces",
+                "category": "Action",
+                "url": "https://easygamefind.com/games/masked-special-forces/",
+                "embed_url": "https://www.onlinegames.io/games/2022/unity2/masked-special-forces/index.html",
+                "description": "蒙面特种部队",
+                "featured": false,
+                "id": 9
+            },
+            {
+                "title": "GTA Simulator",
+                "category": "Adventure",
+                "url": "https://easygamefind.com/games/gta-simulator/",
+                "embed_url": "https://www.onlinegames.io/games/2023/unity2/gta-simulator/index.html",
+                "description": "GTA模拟器游戏",
+                "featured": false,
+                "id": 10
+            }
+        ];
+
+        // 检查登录状态
+        function checkAuth() {
+            if (!localStorage.getItem('adminLoggedIn') && !sessionStorage.getItem('adminLoggedIn')) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('adminLoggedIn');
+                sessionStorage.removeItem('adminLoggedIn');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 渲染游戏列表
+        function renderGames() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            // 筛选游戏
+            let filteredGames = GAMES_DATA.filter(game => {
+                const matchesSearch = game.title.toLowerCase().includes(searchTerm);
+                const matchesCategory = categoryFilter === 'all' || game.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+            
+            // 渲染游戏卡片
+            const gamesList = document.getElementById('gamesList');
+            gamesList.innerHTML = filteredGames.map(game => `
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">${game.title}</h6>
+                            <p class="card-text">
+                                <span class="badge bg-secondary">${game.category}</span>
+                                ${game.featured ? '<span class="badge bg-warning ms-1">精选</span>' : ''}
+                            </p>
+                            <p class="card-text text-muted small">${game.description || '暂无描述'}</p>
+                            <div class="btn-group w-100">
+                                <a href="${game.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i> 访问
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="editGame(${game.id})">
+                                    <i class="fas fa-edit"></i> 编辑
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteGame(${game.id})">
+                                    <i class="fas fa-trash"></i> 删除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 编辑游戏
+        function editGame(gameId) {
+            const game = GAMES_DATA.find(g => g.id === gameId);
+            if (game) {
+                alert(`编辑游戏: ${game.title}\n分类: ${game.category}\n链接: ${game.url}`);
+            }
+        }
+
+        // 删除游戏
+        function deleteGame(gameId) {
+            if (confirm('确定要删除这个游戏吗？')) {
+                const gameIndex = GAMES_DATA.findIndex(g => g.id === gameId);
+                if (gameIndex !== -1) {
+                    GAMES_DATA.splice(gameIndex, 1);
+                    alert('游戏删除成功！');
+                    renderGames();
+                    // 更新统计数据
+                    document.getElementById('totalGames').textContent = GAMES_DATA.length;
+                    document.getElementById('featuredGames').textContent = GAMES_DATA.filter(g => g.featured).length;
+                }
+            }
+        }
+
+        // 搜索和筛选事件
+        document.getElementById('searchInput').addEventListener('input', renderGames);
+        document.getElementById('categoryFilter').addEventListener('change', renderGames);
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                renderGames();
+            }
+        });
+    </script>
+</body>
+</html> 
