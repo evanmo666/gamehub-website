@@ -34,41 +34,59 @@ class GameAdmin {
         try {
             console.log("开始加载游戏数据...");
             
-            // 直接从script.js加载游戏数据
-            const response = await fetch('../script.js');
-            const scriptContent = await response.text();
-            
-            // 从script.js中提取GAME_DATA
-            const gameDataMatch = scriptContent.match(/window\.GAME_DATA\s*=\s*(\[[\s\S]*?\]\s*);/);
-            
-            if (gameDataMatch && gameDataMatch[1]) {
-                console.log("找到游戏数据匹配");
-                try {
-                    this.games = JSON.parse(gameDataMatch[1]);
-                    console.log(`成功加载 ${this.games.length} 个游戏`);
-                } catch (jsonError) {
-                    console.error("JSON解析错误:", jsonError);
-                    console.log("尝试解析的字符串:", gameDataMatch[1].substring(0, 200) + "...");
-                }
-            } else {
-                console.log("未找到游戏数据，尝试备用方法");
-                // 备用方法：尝试从index.html加载
+            // 尝试直接从index.html加载游戏数据
+            try {
                 const htmlResponse = await fetch('../index.html');
                 const htmlContent = await htmlResponse.text();
-                const htmlDataMatch = htmlContent.match(/window\.GAME_DATA\s*=\s*(\[[\s\S]*?\]\s*);/);
+                
+                // 正则表达式更精确地匹配GAME_DATA数组
+                const htmlDataMatch = htmlContent.match(/GAME_DATA\s*=\s*(\[\s*\{[\s\S]*?\}\s*\])/);
                 
                 if (htmlDataMatch && htmlDataMatch[1]) {
+                    console.log("从index.html找到了游戏数据");
                     try {
-                        this.games = JSON.parse(htmlDataMatch[1]);
+                        // 修复JSON格式问题
+                        let jsonStr = htmlDataMatch[1].replace(/'/g, '"')
+                            .replace(/(\w+):/g, '"$1":');  // 确保键名有引号
+                        
+                        this.games = JSON.parse(jsonStr);
                         console.log(`从HTML加载了 ${this.games.length} 个游戏`);
                     } catch (jsonError) {
                         console.error("HTML数据JSON解析错误:", jsonError);
+                        console.log("原始数据:", htmlDataMatch[1].substring(0, 200));
+                        this.loadSampleData();
                     }
                 } else {
-                    // 最终备用：使用示例数据
-                    console.log("所有方法都失败，加载示例数据");
-                    this.loadSampleData();
+                    console.log("在index.html中未找到游戏数据，尝试从script.js加载");
+                    
+                    // 备用方法：从script.js加载
+                    const response = await fetch('../script.js');
+                    const scriptContent = await response.text();
+                    
+                    // 从script.js中查找游戏数据数组
+                    const gameDataMatch = scriptContent.match(/GAME_DATA\s*=\s*(\[\s*\{[\s\S]*?\}\s*\])/);
+                    
+                    if (gameDataMatch && gameDataMatch[1]) {
+                        console.log("从script.js找到游戏数据");
+                        try {
+                            // 修复JSON格式
+                            let jsonStr = gameDataMatch[1].replace(/'/g, '"')
+                                .replace(/(\w+):/g, '"$1":');
+                                
+                            this.games = JSON.parse(jsonStr);
+                            console.log(`成功从script.js加载 ${this.games.length} 个游戏`);
+                        } catch (jsonError) {
+                            console.error("Script数据JSON解析错误:", jsonError);
+                            this.loadSampleData();
+                        }
+                    } else {
+                        console.log("所有方法都失败，加载示例数据");
+                        this.loadSampleData();
+                    }
                 }
+            } catch (fetchError) {
+                console.error("获取HTML内容失败:", fetchError);
+                this.loadSampleData();
             }
             
             // 加载本地保存的管理数据
@@ -135,11 +153,26 @@ class GameAdmin {
     }
 
     mergeAdminData(adminData) {
-        if (adminData.games) {
+        if (adminData && adminData.games) {
+            // 先合并现有游戏
+            const existingGames = new Set(this.games.map(g => g.title));
             this.games = this.games.map(game => {
                 const savedGame = adminData.games.find(g => g.title === game.title);
                 return savedGame ? { ...game, ...savedGame } : game;
             });
+            
+            // 然后添加管理界面中独有的游戏
+            const uniqueAdminGames = adminData.games.filter(g => !existingGames.has(g.title));
+            if (uniqueAdminGames.length > 0) {
+                console.log(`添加 ${uniqueAdminGames.length} 个管理员创建的游戏`);
+                this.games = [...this.games, ...uniqueAdminGames];
+            }
+            
+            // 更新分类列表
+            if (this.games.length > 0) {
+                this.categories = [...new Set(this.games.map(game => game.category))].filter(c => c).sort();
+                console.log(`更新后的分类: ${this.categories.join(', ')}`);
+            }
         }
     }
 
@@ -260,19 +293,87 @@ class GameAdmin {
     }
 
     renderGames() {
+        const tbody = document.getElementById('games-table-body') || document.getElementById('gamesTableBody');
+        if (!tbody) {
+            console.error("找不到游戏表格主体元素");
+            return;
+        }
+        
+        // 检查是否有游戏数据
+        if (!this.games || this.games.length === 0) {
+            console.log("没有游戏数据可显示");
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-gamepad fa-3x text-muted"></i>
+                            </div>
+                            <h5>暂无游戏数据</h5>
+                            <p class="text-muted">点击"添加游戏"按钮添加您的第一个游戏</p>
+                            <button class="btn btn-primary mt-2" id="noDataAddGameBtn">
+                                <i class="fas fa-plus"></i> 添加游戏
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+                
+            // 添加按钮点击事件
+            setTimeout(() => {
+                const addBtn = document.getElementById('noDataAddGameBtn');
+                if (addBtn) {
+                    addBtn.addEventListener('click', () => this.showModal('gameModal'));
+                }
+            }, 100);
+            
+            return;
+        }
+        
         const filteredGames = this.getFilteredGames();
+        
+        // 检查过滤后是否有游戏
+        if (filteredGames.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="py-3">
+                            <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                            <p>没有找到符合筛选条件的游戏</p>
+                            <button id="clearFiltersBtn" class="btn btn-sm btn-outline-secondary">
+                                清除筛选条件
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+                
+            // 添加按钮点击事件    
+            setTimeout(() => {
+                const clearBtn = document.getElementById('clearFiltersBtn');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => this.clearFilters());
+                }
+            }, 100);
+            
+            return;
+        }
+        
+        // 有游戏数据，正常显示
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const paginatedGames = filteredGames.slice(startIndex, endIndex);
 
-        const tbody = document.getElementById('games-table-body');
-        tbody.innerHTML = paginatedGames.map(game => this.createGameRow(game)).join('');
-
-        // 更新分页信息
-        this.updatePagination(filteredGames.length);
-        
-        // 添加行点击事件
-        this.setupGameRowEvents();
+        try {
+            tbody.innerHTML = paginatedGames.map(game => this.createGameRow(game)).join('');
+            
+            // 更新分页信息
+            this.updatePagination(filteredGames.length);
+            
+            // 添加行点击事件
+            this.setupGameRowEvents();
+        } catch (error) {
+            console.error("渲染游戏表格出错:", error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center">渲染游戏数据时出错</td></tr>`;
+        }
     }
 
     getFilteredGames() {
