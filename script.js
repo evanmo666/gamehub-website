@@ -88,6 +88,14 @@ class GameWebsite {
     }
 
     setupEventListeners() {
+        // 检查URL参数中是否有游戏ID
+        this.checkUrlForGameId();
+        
+        // 监听URL变化
+        window.addEventListener('popstate', () => {
+            this.checkUrlForGameId();
+        });
+        
         // Sidebar search
         const sidebarSearchInput = document.querySelector('.sidebar-search-input');
         if (sidebarSearchInput) {
@@ -666,6 +674,15 @@ class GameWebsite {
         
         if (!modal || !titleEl || !frameEl || !loadingEl || !gameInfoEl) return;
         
+        // 更新URL以反映当前游戏
+        const gameId = this.getGameId(game);
+        const newUrl = `${window.location.pathname}?game=${gameId}`;
+        
+        // 只有当URL不同时才更新历史
+        if (window.location.search !== `?game=${gameId}`) {
+            window.history.pushState({ gameId }, game.title, newUrl);
+        }
+        
         titleEl.textContent = game.title;
         loadingEl.style.display = 'flex';
         frameEl.style.display = 'none';
@@ -692,6 +709,14 @@ class GameWebsite {
                     <h3>${game.title}</h3>
                     <div class="modal-game-category">${game.category}</div>
                     ${game.description ? `<p class="modal-game-desc">${game.description}</p>` : ''}
+                    <div class="modal-game-actions">
+                        <button class="modal-play-btn" onclick="document.getElementById('gameFrame').focus()">
+                            <span>▶</span> 开始游戏
+                        </button>
+                        <button class="modal-share-btn" onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('游戏链接已复制到剪贴板！'))">
+                            <span>🔗</span> 分享游戏
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -758,7 +783,12 @@ class GameWebsite {
             frameEl.src = '';
             modal.classList.remove('active', 'fullscreen');
             document.body.style.overflow = 'auto';
+            
+            // 恢复原始URL（如果需要）
+            if (window.location.search.includes('game=')) {
+                window.history.pushState({}, document.title, window.location.pathname);
             }
+        }
     }
 
     // 初始化分类筛选器
@@ -778,6 +808,29 @@ class GameWebsite {
             const displayName = category === 'all' ? 'All Categories' : category;
             return `<option value="${category}">${displayName}</option>`;
         }).join('');
+    }
+
+    // 获取游戏的唯一ID
+    getGameId(game) {
+        // 使用游戏标题生成一个简单的ID
+        return game.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    }
+    
+    // 检查URL参数中是否有游戏ID
+    checkUrlForGameId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('game');
+        
+        if (gameId) {
+            // 查找匹配的游戏
+            const game = this.games.find(g => this.getGameId(g) === gameId);
+            if (game) {
+                // 打开游戏详情弹窗
+                setTimeout(() => {
+                    this.openGameModal(game);
+                }, 500);
+            }
+        }
     }
 }
 
