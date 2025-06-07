@@ -4,6 +4,12 @@
 
 GameHub是一个游戏展示和管理平台，提供多种分类的在线游戏，包括前台展示界面和后台管理系统。
 
+### 访问地址
+- 网站前台：[https://www.onlinegame.run](https://www.onlinegame.run)
+- 管理后台：[https://www.onlinegame.run/admin](https://www.onlinegame.run/admin)
+  - 管理员用户名：admin
+  - 管理员密码：Wwe5273@
+
 ## 功能特性
 
 ### 前台功能
@@ -158,6 +164,11 @@ All games hosted on onlinegames.io platform.
 - ✅ Mobile browsers
 
 ## Updates Log
+
+### Version 2.0.2 (2025-01-29) - Vercel Deployment & CSS Fixes
+- **🚀 NEW: Vercel Deployment**: Successfully deployed to Vercel with custom domain (onlinegame.run)
+- **🔧 FIXED: Admin CSS**: Fixed CSS loading issues in admin panel by correcting file paths
+- **🔗 Custom Domain**: Added custom domain configuration for production environment
 
 ### Version 2.0.1 (2025-01-28) - Bug Fixes & Improvements
 - **🐛 FIXED: Thumbnail Upload**: Fixed issue where uploaded thumbnails were not saved properly
