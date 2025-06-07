@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏缩略图批量上传工具</title>
+    
+    <!-- 导入字体和图标 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #3730a3;
+            --primary-light: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-dark: #1e293b;
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-secondary);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+        
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+        }
+        
+        .drop-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.03);
+        }
+        
+        .drop-zone.active {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.05);
+        }
+        
+        .drop-zone-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+        
+        .drop-zone-text {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .drop-zone-hint {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .btn-block {
+            width: 100%;
+            text-align: center;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .result-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-thumbnail {
+            width: 60px;
+            height: 60px;
+            margin-right: 16px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .result-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .result-info {
+            flex: 1;
+        }
+        
+        .result-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .result-status {
+            font-size: 0.85rem;
+        }
+        
+        .result-status.success {
+            color: var(--success-color);
+        }
+        
+        .result-status.error {
+            color: var(--danger-color);
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+        
+        .toast-success .toast-icon {
+            color: var(--success-color);
+        }
+        
+        .toast-error .toast-icon {
+            color: var(--danger-color);
+        }
+        
+        .toast-message {
+            font-weight: 500;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="dashboard.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> 返回管理后台
+        </a>
+        
+        <div class="header">
+            <h1>游戏缩略图批量上传工具</h1>
+            <p>快速为多个游戏上传缩略图</p>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">上传说明</h2>
+            <p>本工具可以帮助您快速批量上传游戏缩略图。使用方法如下：</p>
+            <ol style="margin-left: 20px; margin-top: 12px;">
+                <li>准备好所有游戏缩略图，<strong>文件名需要与游戏标题一致</strong></li>
+                <li>将所有图片拖拽到下方上传区域，或点击选择文件</li>
+                <li>系统会自动匹配游戏标题并上传缩略图</li>
+                <li>上传完成后，可以查看上传结果</li>
+            </ol>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">上传缩略图</h2>
+            
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="drop-zone-text">拖拽图片文件到这里，或点击选择文件</div>
+                <div class="drop-zone-hint">支持 .jpg, .jpeg, .png, .gif 格式的图片文件</div>
+                <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">缩略图文件名匹配规则</label>
+                <select id="matchingRule" class="form-input">
+                    <option value="exact">完全匹配（文件名必须与游戏标题完全一致）</option>
+                    <option value="startsWith">开头匹配（文件名以游戏标题开头）</option>
+                    <option value="contains" selected>包含匹配（文件名包含游戏标题）</option>
+                    <option value="similar">相似匹配（文件名与游戏标题相似度高）</option>
+                </select>
+                <div class="form-help">选择如何将文件名与游戏标题进行匹配</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="autoRename" checked>
+                    <span>自动处理文件名（去除扩展名和特殊字符）</span>
+                </label>
+            </div>
+            
+            <div id="progressContainer" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                    <span id="progressText">正在上传...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary btn-block" id="uploadBtn">
+                    <i class="fas fa-upload"></i> 开始批量上传
+                </button>
+            </div>
+        </div>
+        
+        <div class="card" id="resultsCard" style="display: none;">
+            <h2 class="card-title">上传结果</h2>
+            
+            <div class="result-summary" id="resultSummary">
+                <!-- 上传结果统计将在这里显示 -->
+            </div>
+            
+            <div class="result-list" id="resultList">
+                <!-- 上传结果详情将在这里显示 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 获取元素
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const resultsCard = document.getElementById('resultsCard');
+        const resultSummary = document.getElementById('resultSummary');
+        const resultList = document.getElementById('resultList');
+        const matchingRule = document.getElementById('matchingRule');
+        const autoRename = document.getElementById('autoRename');
+        
+        // 全局变量
+        let selectedFiles = [];
+        let gameData = [];
+        let uploadResults = [];
+        
+        // 检查登录状态
+        function checkAuthentication() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') || sessionStorage.getItem('adminLoggedIn');
+            if (isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // 加载游戏数据
+        function loadGameData() {
+            // 从localStorage加载游戏数据
+            const adminGames = localStorage.getItem('adminGames');
+            if (adminGames) {
+                try {
+                    gameData = JSON.parse(adminGames);
+                    console.log(`已加载 ${gameData.length} 个游戏数据`);
+                } catch (error) {
+                    console.error('解析游戏数据出错:', error);
+                    showToast('加载游戏数据失败，请返回管理后台重试', 'error');
+                }
+            } else {
+                console.warn('未找到游戏数据');
+                showToast('未找到游戏数据，请先在管理后台添加游戏', 'error');
+            }
+        }
+        
+        // 处理文件拖拽
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('active');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            
+            if (e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+        
+        // 点击上传区域触发文件选择
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // 监听文件选择
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFiles(e.target.files);
+            }
+        });
+        
+        // 处理选择的文件
+        function handleFiles(files) {
+            // 过滤出图片文件
+            const imageFiles = Array.from(files).filter(file => 
+                file.type.startsWith('image/')
+            );
+            
+            if (imageFiles.length === 0) {
+                showToast('请选择图片文件', 'error');
+                return;
+            }
+            
+            selectedFiles = imageFiles;
+            showToast(`已选择 ${selectedFiles.length} 个图片文件`, 'success');
+        }
+        
+        // 上传按钮点击事件
+        uploadBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) {
+                showToast('请先选择图片文件', 'error');
+                return;
+            }
+            
+            if (gameData.length === 0) {
+                showToast('未找到游戏数据，请先在管理后台添加游戏', 'error');
+                return;
+            }
+            
+            startUpload();
+        });
+        
+        // 开始上传
+        function startUpload() {
+            // 重置上传结果
+            uploadResults = [];
+            
+            // 显示进度条
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '正在上传...';
+            progressPercent.textContent = '0%';
+            
+            // 隐藏结果卡片
+            resultsCard.style.display = 'none';
+            
+            // 禁用上传按钮
+            uploadBtn.disabled = true;
+            
+            // 开始处理每个文件
+            processFiles();
+        }
+        
+        // 处理文件上传
+        async function processFiles() {
+            const total = selectedFiles.length;
+            let processed = 0;
+            let success = 0;
+            
+            for (const file of selectedFiles) {
+                try {
+                    // 读取文件为DataURL
+                    const dataUrl = await readFileAsDataURL(file);
+                    
+                    // 获取文件名（不包括扩展名）
+                    let fileName = file.name;
+                    if (autoRename.checked) {
+                        fileName = file.name.replace(/\.[^/.]+$/, ""); // 移除扩展名
+                        fileName = fileName.replace(/[^\w\s\-]/g, ""); // 移除特殊字符
+                        fileName = fileName.trim(); // 移除首尾空格
+                    }
+                    
+                    // 匹配游戏
+                    const matchedGame = findMatchingGame(fileName);
+                    
+                    if (matchedGame) {
+                        // 更新游戏缩略图
+                        matchedGame.thumbnail = dataUrl;
+                        success++;
+                        
+                        uploadResults.push({
+                            fileName: file.name,
+                            gameTitle: matchedGame.title,
+                            status: 'success',
+                            message: '匹配成功并上传',
+                            thumbnail: dataUrl
+                        });
+                    } else {
+                        uploadResults.push({
+                            fileName: file.name,
+                            gameTitle: null,
+                            status: 'error',
+                            message: '未找到匹配的游戏',
+                            thumbnail: dataUrl
+                        });
+                    }
+                } catch (error) {
+                    console.error('处理文件出错:', error);
+                    uploadResults.push({
+                        fileName: file.name,
+                        gameTitle: null,
+                        status: 'error',
+                        message: '处理文件时出错: ' + error.message,
+                        thumbnail: null
+                    });
+                }
+                
+                // 更新进度
+                processed++;
+                const percent = Math.floor((processed / total) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressText.textContent = `正在上传 (${processed}/${total})`;
+                progressPercent.textContent = `${percent}%`;
+                
+                // 模拟网络延迟，防止UI卡顿
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            // 保存更新后的游戏数据
+            saveGameData();
+            
+            // 显示上传结果
+            showResults(total, success);
+            
+            // 启用上传按钮
+            uploadBtn.disabled = false;
+        }
+        
+        // 根据匹配规则查找匹配的游戏
+        function findMatchingGame(fileName) {
+            const rule = matchingRule.value;
+            
+            // 不区分大小写
+            const normalizedFileName = fileName.toLowerCase();
+            
+            switch (rule) {
+                case 'exact':
+                    return gameData.find(game => game.title.toLowerCase() === normalizedFileName);
+                
+                case 'startsWith':
+                    return gameData.find(game => normalizedFileName.startsWith(game.title.toLowerCase()));
+                
+                case 'contains':
+                    return gameData.find(game => normalizedFileName.includes(game.title.toLowerCase()) || 
+                                              game.title.toLowerCase().includes(normalizedFileName));
+                
+                case 'similar':
+                    // 查找相似度最高的游戏
+                    let bestMatch = null;
+                    let bestScore = 0;
+                    
+                    for (const game of gameData) {
+                        const score = calculateSimilarity(normalizedFileName, game.title.toLowerCase());
+                        if (score > bestScore && score > 0.6) { // 相似度阈值为0.6
+                            bestScore = score;
+                            bestMatch = game;
+                        }
+                    }
+                    
+                    return bestMatch;
+                
+                default:
+                    return null;
+            }
+        }
+        
+        // 计算两个字符串的相似度（Levenshtein距离的简化版本）
+        function calculateSimilarity(str1, str2) {
+            // 如果两个字符串长度相差太多，直接返回低相似度
+            if (Math.abs(str1.length - str2.length) > 10) {
+                return 0;
+            }
+            
+            // 简单的包含检查
+            if (str1.includes(str2) || str2.includes(str1)) {
+                return 0.8;
+            }
+            
+            // 计算共同字符
+            let common = 0;
+            for (let i = 0; i < Math.min(str1.length, str2.length); i++) {
+                if (str1[i] === str2[i]) {
+                    common++;
+                }
+            }
+            
+            return common / Math.max(str1.length, str2.length);
+        }
+        
+        // 读取文件为DataURL
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(new Error('读取文件失败'));
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // 保存游戏数据
+        function saveGameData() {
+            try {
+                // 保存到adminGames键（管理后台使用）
+                localStorage.setItem('adminGames', JSON.stringify(gameData));
+                
+                // 同时保存到gameAdminData键（前端网站使用）
+                localStorage.setItem('gameAdminData', JSON.stringify({
+                    games: gameData,
+                    lastUpdated: new Date().toISOString()
+                }));
+                
+                console.log('游戏数据已保存到两个存储键中，共', gameData.length, '个游戏');
+            } catch (error) {
+                console.error('保存游戏数据失败:', error);
+                showToast('保存游戏数据失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 显示上传结果
+        function showResults(total, success) {
+            // 显示结果卡片
+            resultsCard.style.display = 'block';
+            
+            // 更新结果统计
+            resultSummary.innerHTML = `
+                <div style="margin-bottom: 16px;">
+                    <p>总共处理了 <strong>${total}</strong> 个文件，成功匹配并上传了 <strong>${success}</strong> 个缩略图。</p>
+                </div>
+            `;
+            
+            // 更新结果列表
+            resultList.innerHTML = '';
+            
+            uploadResults.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                
+                resultItem.innerHTML = `
+                    <div class="result-thumbnail">
+                        ${result.thumbnail ? `<img src="${result.thumbnail}">` : '<i class="fas fa-image" style="font-size: 2rem; color: var(--text-muted); display: flex; justify-content: center; align-items: center; height: 100%;"></i>'}
+                    </div>
+                    <div class="result-info">
+                        <div class="result-title">${result.fileName}</div>
+                        <div class="result-status ${result.status}">
+                            ${result.status === 'success' 
+                                ? `<i class="fas fa-check-circle"></i> 匹配到游戏 "${result.gameTitle}"` 
+                                : `<i class="fas fa-times-circle"></i> ${result.message}`}
+                        </div>
+                    </div>
+                `;
+                
+                resultList.appendChild(resultItem);
+            });
+            
+            // 滚动到结果区域
+            resultsCard.scrollIntoView({ behavior: 'smooth' });
+            
+            // 显示提示
+            if (success > 0) {
+                showToast(`成功上传了 ${success} 个游戏缩略图`, 'success');
+            } else {
+                showToast('未能成功上传任何缩略图，请检查文件名是否与游戏标题匹配', 'error');
+            }
+        }
+        
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            // 移除现有提示
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                document.body.removeChild(existingToast);
+            }
+            
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            // 添加到文档
+            document.body.appendChild(toast);
+            
+            // 动画显示
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // 自动关闭
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 5000);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            loadGameData();
+        });
+    </script>
+</body>
+</html> 
